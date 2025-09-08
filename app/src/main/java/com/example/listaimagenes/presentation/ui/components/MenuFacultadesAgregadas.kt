@@ -29,9 +29,9 @@ fun MenuFacultadesAgregadas(
 
     Box(modifier = modifier) {
         OutlinedTextField(
-            value = facultadSeleccionada?.nombre ?: "",
+            value = facultadSeleccionada?.nombre?: "",
             onValueChange = {},
-            label = { Text("Selecciona facultad para ver") },
+            label = { Text("Selexpandidoecciona facultad para ver") },
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { expandido = !expandido }) {

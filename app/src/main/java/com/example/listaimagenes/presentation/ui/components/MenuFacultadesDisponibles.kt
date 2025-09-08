@@ -27,7 +27,7 @@ fun MenuFacultadesDisponibles(
     var expandido by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        OutlinedTextField(
+        OutlinedTextField(//ExposedDropdownMenuBox() mejor es este componente
             value = facultadSeleccionada,
             onValueChange = {},
             label = { Text("Selecciona facultad a agregar") },
