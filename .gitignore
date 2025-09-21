@@ -9,6 +9,16 @@
 .idea/workspace.xml
 .idea/navEditor.xml
 .idea/assetWizardSettings.xml
+.idea/gradle.xml
+.idea/misc.xml
+.idea/compiler.xml
+
+# ======================
+# VS Code
+# ======================
+.vscode/
+.history/
+*.code-workspace
 
 # ======================
 # Gradle
@@ -20,6 +30,8 @@ captures/
 .externalNativeBuild/
 .cxx/
 .kotlinc/
+.gradle-cache/
+.gradle-local/
 
 # ======================
 # Archivos locales
@@ -27,20 +39,58 @@ captures/
 local.properties
 *.keystore
 *.jks
+*.gradle.kts.backup
+*.gradle.kts.tmp
 
 # ======================
 # Archivos de sistema
 # ======================
 .DS_Store
 Thumbs.db
+ehthumbs.db
+desktop.ini
 
 # ======================
 # Logs y reportes
 # ======================
 *.log
 *.hprof
+*.stacktrace
+hs_err_pid*
+replay_pid*
 
 # ======================
 # Test / Coverage
 # ======================
 coverage/
+test-results/
+*.ec
+*.exec
+jacoco.exec
+
+# ======================
+# Archivos generados por Android
+# ======================
+app/release/
+app/debug/
+outputs/
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# ======================
+# Cache de compilación
+# ======================
+/intermediates/
+/generated/
+/out/
+
+# ======================
+# Archivos temporales
+# ======================
+*.swp
+*.tmp
+*.temp
+*~
