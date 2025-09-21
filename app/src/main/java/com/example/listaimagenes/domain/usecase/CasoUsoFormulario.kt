@@ -14,9 +14,10 @@ class CasoUsoFormulario(
         return repositorio.obtenerFacultadesAgregadas()
     }
 
-    fun agregarFacultad(nombre: String, descripcion: String, año: Int): Boolean {
+    // 🆕 Función actualizada para soportar fotos personalizadas
+    fun agregarFacultad(nombre: String, descripcion: String, año: Int, fotoPersonalizada: String? = null): Boolean {
         return if (descripcion.isNotBlank() && año > 0) {
-            repositorio.agregarFacultad(nombre, descripcion, año)
+            repositorio.agregarFacultad(nombre, descripcion, año, fotoPersonalizada)
         } else {
             false
         }

@@ -23,7 +23,6 @@ class RepositorioFacultad {
         "Ingeniería Zootecnia" to R.drawable.zootecnia
     )
 
-
     private val facultadesBase = listOf(
         "Agronomía",
         "Arquitectura y Urbanismo",
@@ -41,7 +40,6 @@ class RepositorioFacultad {
         "Ingeniería Zootecnia"
     )
 
-
     fun obtenerFacultadesDisponibles(): List<String> {
         val nombresAgregados = _facultadesAgregadas.map { it.nombre }
         return facultadesBase.filter { it !in nombresAgregados }
@@ -51,7 +49,8 @@ class RepositorioFacultad {
         return _facultadesAgregadas.toList()
     }
 
-    fun agregarFacultad(nombre: String, descripcion: String, año: Int): Boolean {
+    // 🆕 Función actualizada para soportar fotos personalizadas
+    fun agregarFacultad(nombre: String, descripcion: String, año: Int, fotoPersonalizada: String? = null): Boolean {
         val imagen = mapaImagenes[nombre] ?: return false
 
         if (_facultadesAgregadas.any { it.nombre == nombre }) {
@@ -62,7 +61,8 @@ class RepositorioFacultad {
             nombre = nombre,
             descripcion = descripcion,
             año = año,
-            imagen = imagen
+            imagen = imagen,
+            fotoPersonalizada = fotoPersonalizada // 🆕 Agregar foto personalizada
         )
 
         _facultadesAgregadas.add(nuevaFacultad)
@@ -74,7 +74,7 @@ class RepositorioFacultad {
     }
 
     fun limpiarTodas() {
-        _facultadesAgregadas.clear()
+        _facultadesAgregadas.clear() // 🔧 CORREGIDO: era repositorio.limpiarTodas()
     }
 
     fun buscarPorNombre(nombre: String): Facultad? {

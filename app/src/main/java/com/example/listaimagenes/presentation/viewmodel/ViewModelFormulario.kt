@@ -14,6 +14,7 @@ data class EstadoFormulario(
     val facultadSeleccionadaFormulario: String = "",
     val descripcion: String = "",
     val año: String = "",
+    val fotoPersonalizada: String? = null, // 🆕 Agregar esta línea
     val facultadSeleccionadaVisualizacion: Facultad? = null,
     val mostrarConfirmacionEliminar: Boolean = false,
     val facultadAEliminar: String = "",
@@ -59,6 +60,15 @@ class ViewModelFormulario : ViewModel() {
         _estado.update { it.copy(año = año, mensajeError = "", mensajeExito = "") }
     }
 
+    // 🆕 Funciones para manejar foto personalizada
+    fun establecerFotoPersonalizada(rutaFoto: String) {
+        _estado.update { it.copy(fotoPersonalizada = rutaFoto) }
+    }
+
+    fun limpiarFotoPersonalizada() {
+        _estado.update { it.copy(fotoPersonalizada = null) }
+    }
+
     fun enviarFormulario() {
         val estadoActual = _estado.value
         val añoInt = estadoActual.año.toIntOrNull() ?: -1
@@ -66,7 +76,8 @@ class ViewModelFormulario : ViewModel() {
         val exito = casoUso.agregarFacultad(
             estadoActual.facultadSeleccionadaFormulario,
             estadoActual.descripcion,
-            añoInt
+            añoInt,
+            estadoActual.fotoPersonalizada // 🆕 Pasar foto personalizada
         )
 
         if (exito) {
@@ -76,7 +87,8 @@ class ViewModelFormulario : ViewModel() {
                     mensajeError = "",
                     facultadSeleccionadaFormulario = "",
                     descripcion = "",
-                    año = ""
+                    año = "",
+                    fotoPersonalizada = null // 🆕 Limpiar foto
                 )
             }
             cargarDatos()
