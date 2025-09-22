@@ -1,14 +1,19 @@
 package com.example.listaimagenes.domain.usecase
 
+import android.content.ContentResolver
 import com.example.listaimagenes.domain.model.Persona
 import com.example.listaimagenes.data.IPersonaRepository
+import java.io.File
 
 sealed class ResultadoAgregarPersona {
     object Exito : ResultadoAgregarPersona()
     data class Error(val mensaje: String) : ResultadoAgregarPersona()
 }
 
-class CasoUsoPersona(private val repo: IPersonaRepository) {
+class CasoUsoPersona(
+    private val repo: IPersonaRepository,
+    private val contentResolver: ContentResolver
+) {
     suspend fun agregarPersona(
         nombre: String,
         apellido: String,
@@ -61,6 +66,56 @@ class CasoUsoPersona(private val repo: IPersonaRepository) {
 
         return personas
     }
-    suspend fun eliminarPersona(dni: String) = repo.eliminarPersona(dni)
-    suspend fun limpiarTodas() = repo.limpiarTodas()
+
+    suspend fun eliminarPersona(dni: String): Boolean {
+        val persona = repo.obtenerPersonaPorDni(dni)
+
+        val eliminado = repo.eliminarPersona(dni)
+
+        if (eliminado && persona?.foto != null) {
+            try {
+                // Cambio principal: usar File.delete() en lugar de ContentResolver.delete()
+                val file = File(persona.foto)
+                if (file.exists()) {
+                    val fotoEliminada = file.delete()
+                    println("Foto eliminada: $fotoEliminada - Ruta: ${persona.foto}")
+                } else {
+                    println("El archivo no existe: ${persona.foto}")
+                }
+            } catch (e: Exception) {
+                println("Error al eliminar la foto: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+
+        return eliminado
+    }
+
+    suspend fun limpiarTodas(): Boolean {
+        return try {
+            val personas = repo.obtenerPersonas()
+
+            repo.limpiarTodas()
+
+            personas.forEach { persona ->
+                persona.foto?.let { fotoPath ->
+                    try {
+                        val file = File(fotoPath)
+                        if (file.exists()) {
+                            val eliminada = file.delete()
+                            println("Foto eliminada: $eliminada - Ruta: $fotoPath")
+                        }
+                    } catch (e: Exception) {
+                        println("Error al eliminar la foto: ${e.message}")
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 }

@@ -5,8 +5,9 @@ import com.example.listaimagenes.domain.model.Persona
 interface IPersonaRepository {
     suspend fun agregarPersona(persona: Persona): Boolean
     suspend fun obtenerPersonas(): List<Persona>
-    suspend fun eliminarPersona(dni: String)
-    suspend fun limpiarTodas()
+    suspend fun obtenerPersonaPorDni(dni: String): Persona?
+    suspend fun eliminarPersona(dni: String) : Boolean
+    suspend fun limpiarTodas():Boolean
 }
 
 class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
@@ -26,11 +27,33 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
         }
     }
 
-    override suspend fun eliminarPersona(dni: String) {
-        dao.eliminarPersona(dni)
+    override suspend fun obtenerPersonaPorDni(dni: String): Persona? {
+        return try {
+            val entidad = dao.obtenerPersonaPorDni(dni)
+            entidad?.let {
+                Persona(it.dni, it.nombre, it.apellido, it.foto)
+            }
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    override suspend fun limpiarTodas() {
-        dao.limpiarTodas()
+    override suspend fun eliminarPersona(dni: String) : Boolean {
+        return try{
+            dao.eliminarPersona(dni)
+            true
+        } catch (e: Exception){
+            false
+        }
+
+    }
+
+    override suspend fun limpiarTodas(): Boolean {
+        return try {
+            dao.limpiarTodas()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

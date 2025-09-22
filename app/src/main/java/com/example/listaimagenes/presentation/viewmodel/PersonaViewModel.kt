@@ -33,6 +33,7 @@ class PersonaViewModel() : ViewModel() {
     }
     fun limpiarFoto() {
         _estado.update { it.copy(foto = null) }
+        System.gc()
     }
 
     fun agregarPersona(onExito: (Boolean) -> Unit) {
@@ -70,25 +71,58 @@ class PersonaViewModel() : ViewModel() {
 
     fun eliminarPersona(dni: String) {
         viewModelScope.launch {
-            casoUso.eliminarPersona(dni)
-            _estado.update {
-                it.copy(
-                    personas = casoUso.obtenerPersonas(),
-                    personaSeleccionada = null,
-                    mostrarConfirmacionEliminar = false
-                )
+            _estado.update { it.copy(personaSeleccionada = null) }
+            System.gc()
+            delay(100)
+
+            val exitoso = casoUso.eliminarPersona(dni)
+            if (exitoso) {
+                _estado.update {
+                    it.copy(
+                        personas = casoUso.obtenerPersonas(),
+                        personaSeleccionada = null,
+                        mostrarConfirmacionEliminar = false,
+                        mensaje = MensajeUI.Exito("Persona eliminada correctamente")
+                    )
+                }
+            } else {
+                _estado.update {
+                    it.copy(
+                        mensaje = MensajeUI.Error("Error al eliminar la persona"),
+                        mostrarConfirmacionEliminar = false
+                    )
+                }
             }
         }
     }
     fun limpiarTodo() {
         viewModelScope.launch {
-            casoUso.limpiarTodas()
             _estado.update {
                 it.copy(
                     personas = emptyList(),
-                    mensaje = MensajeUI.Ninguno,
-                    mostrarConfirmacionLimpiar = false
+                    personaSeleccionada = null,
+                    foto = null
                 )
+            }
+            System.gc()
+            delay(200)
+
+            val exitoso = casoUso.limpiarTodas()
+            if (exitoso) {
+                _estado.update {
+                    it.copy(
+                        personas = emptyList(),
+                        mensaje = MensajeUI.Exito("Todo eliminado correctamente"),
+                        mostrarConfirmacionLimpiar = false
+                    )
+                }
+            } else {
+                _estado.update {
+                    it.copy(
+                        mensaje = MensajeUI.Error("Error al limpiar todo"),
+                        mostrarConfirmacionLimpiar = false
+                    )
+                }
             }
         }
     }

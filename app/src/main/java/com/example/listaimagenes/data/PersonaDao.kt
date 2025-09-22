@@ -19,4 +19,8 @@ interface PersonaDao {
 
     @Query("DELETE FROM personas")
     suspend fun limpiarTodas()
+
+    @Query("SELECT * FROM personas WHERE dni = :dni LIMIT 1")
+    suspend fun obtenerPersonaPorDni(dni: String): Persona
+
 }

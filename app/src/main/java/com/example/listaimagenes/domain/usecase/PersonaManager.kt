@@ -13,6 +13,9 @@ object PersonaManager {
     fun init(context: Context) {
         val dao = AppDatabase.getInstance(context).personaDao()
         repositorio = RepositorioPersona(dao)
-        casoUso = CasoUsoPersona(repositorio)
+        casoUso = CasoUsoPersona(
+            repositorio,
+            context.contentResolver
+        )
     }
 }
