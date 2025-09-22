@@ -1,10 +1,9 @@
-package com.example.listaimagenes.presentation.ui.components
+package com.example.listaimagenes.presentation.ui
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import com.example.listaimagenes.presentation.theme.AppTypography
 import com.example.listaimagenes.presentation.theme.ColoresApp
 

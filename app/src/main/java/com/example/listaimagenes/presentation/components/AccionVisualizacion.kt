@@ -1,4 +1,4 @@
-package com.example.listaimagenes.presentation.utils
+package com.example.listaimagenes.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -9,8 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.example.listaimagenes.presentation.theme.AppTypography
-import com.example.listaimagenes.presentation.theme.Tamaños
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun AccionesVisualizacion(
@@ -19,22 +18,21 @@ fun AccionesVisualizacion(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Tamaños.EspacioChico)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(
             onClick = alVolverFormulario,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
-        ) {
-            Text("Agregar Más", color = Color.White, style = AppTypography.bodyMedium)
-        }
+        ) { Text("Agregar Más", color = Color.White) }
 
         Button(
             onClick = alLimpiarTodo,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
-        ) {
-            Text("Limpiar Todo", color = Color.White, style = AppTypography.bodyMedium)
-        }
+        ) { Text("Limpiar Todo", color = Color.White) }
     }
 }
+
+
+

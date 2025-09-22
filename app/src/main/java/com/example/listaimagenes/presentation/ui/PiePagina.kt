@@ -1,4 +1,4 @@
-package com.example.listaimagenes.presentation.ui.components
+package com.example.listaimagenes.presentation.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -7,7 +7,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.example.listaimagenes.presentation.theme.AppTypography
 import com.example.listaimagenes.presentation.theme.ColoresApp
 import com.example.listaimagenes.presentation.theme.Tamaños
-import com.example.listaimagenes.presentation.utils.obtenerHoraActual
+import com.example.listaimagenes.presentation.components.obtenerHoraActual
 import kotlinx.coroutines.delay
 
 @Composable

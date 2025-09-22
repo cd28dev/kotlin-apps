@@ -1,4 +1,4 @@
-package com.example.listaimagenes.presentation.ui.components
+package com.example.listaimagenes.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -16,7 +16,6 @@ import com.example.listaimagenes.presentation.theme.AppTypography
 @Composable
 fun BarraSuperior(
     titulo: String = "Facultades UNP",
-    logoId: Int = R.drawable.logo_informatica
 ) {
     TopAppBar(
         title = {
@@ -24,11 +23,6 @@ fun BarraSuperior(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {
-                Image(
-                    painter = painterResource(id = logoId),
-                    contentDescription = "Logo institucional",
-                    modifier = Modifier.size(Tamaños.Logo)
-                )
                 Spacer(modifier = Modifier.width(Tamaños.EspacioChico))
                 Text(
                     text = titulo,

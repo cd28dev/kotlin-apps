@@ -1,4 +1,4 @@
-package com.example.listaimagenes.presentation.utils
+package com.example.listaimagenes.presentation.components
 
 
 import java.text.SimpleDateFormat

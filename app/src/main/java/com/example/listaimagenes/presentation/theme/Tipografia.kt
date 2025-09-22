@@ -10,7 +10,7 @@ val AppTypography = Typography(
         fontSize = 22.sp,
         fontWeight = FontWeight.SemiBold
     ),
-    titleMedium = TextStyle( // 🆕 AGREGAR ESTE ESTILO
+    titleMedium = TextStyle(
         fontSize = 18.sp,
         fontWeight = FontWeight.Medium
     ),
