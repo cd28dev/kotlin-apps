@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
-            Toast.makeText(this, "Se necesita permiso de cámara para tomar fotos", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Se necesita permiso de cámara", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppPrincipal() {
-    var pantallaActual by remember { mutableStateOf("formulario") }
+    var pantallaActual by remember { mutableStateOf("visualizacion") }
     val viewModel: PersonaViewModel = viewModel()
 
     when (pantallaActual) {

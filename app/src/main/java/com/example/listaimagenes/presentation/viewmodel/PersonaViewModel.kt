@@ -6,7 +6,7 @@ import com.example.listaimagenes.domain.model.EstadoPersona
 import com.example.listaimagenes.domain.model.MensajeUI
 import com.example.listaimagenes.domain.model.Persona
 import com.example.listaimagenes.domain.usecase.PersonaManager
-import com.example.listaimagenes.domain.usecase.ResultadoAgregarPersona
+import com.example.listaimagenes.domain.usecase.Resultado
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +25,10 @@ class PersonaViewModel() : ViewModel() {
     fun actualizarApellido(v: String) {
         _estado.update { it.copy(apellido = v) }
     }
+
+    fun actualizarCorreo(v:String){
+        _estado.update { it.copy(correo = v) }
+    }
     fun actualizarDni(v: String) {
         _estado.update { it.copy(dni = v) }
     }
@@ -36,15 +40,16 @@ class PersonaViewModel() : ViewModel() {
         System.gc()
     }
 
-    fun agregarPersona(onExito: (Boolean) -> Unit) {
+    fun crear(onExito: (Boolean) -> Unit) {
         val e = _estado.value
+        val persona: Persona = Persona(nombre=e.nombre, apellido = e.apellido,dni = e.dni,correo=e.correo,foto=e.foto)
         viewModelScope.launch {
-            when (val resultado = casoUso.agregarPersona(e.nombre, e.apellido, e.dni, e.foto)) {
-                is ResultadoAgregarPersona.Exito -> {
-                    val personas = casoUso.obtenerPersonas()
+            when (val resultado = casoUso.crear(persona)) {
+                is Resultado.Exito -> {
+                    val personas = casoUso.listar()
                     _estado.update {
                         it.copy(
-                            dni = "", nombre = "", apellido = "",foto = null,
+                            dni = "", nombre = "", apellido = "",correo="",foto = null,
                             personas = personas,
                             mensaje = MensajeUI.Exito("Persona agregada correctamente")
                         )
@@ -52,7 +57,7 @@ class PersonaViewModel() : ViewModel() {
                     delay(3000)
                     onExito(true)
                 }
-                is ResultadoAgregarPersona.Error -> {
+                is Resultado.Error -> {
                     _estado.update { it.copy(mensaje = MensajeUI.Error(resultado.mensaje)) }
                     onExito(false)
                 }
@@ -62,24 +67,24 @@ class PersonaViewModel() : ViewModel() {
 
     fun cargarPersonas(onListo: () -> Unit = {}) {
         viewModelScope.launch {
-            val personas = casoUso.obtenerPersonas()
+            val personas = casoUso.listar()
             _estado.update { it.copy(personas = personas) }
             onListo()
         }
     }
 
 
-    fun eliminarPersona(dni: String) {
+    fun eliminar(persona:Persona) {
         viewModelScope.launch {
             _estado.update { it.copy(personaSeleccionada = null) }
             System.gc()
             delay(100)
 
-            val exitoso = casoUso.eliminarPersona(dni)
-            if (exitoso) {
+            val exitoso = casoUso.eliminar(persona)
+            if (exitoso==1) {
                 _estado.update {
                     it.copy(
-                        personas = casoUso.obtenerPersonas(),
+                        personas = casoUso.listar(),
                         personaSeleccionada = null,
                         mostrarConfirmacionEliminar = false,
                         mensaje = MensajeUI.Exito("Persona eliminada correctamente")
