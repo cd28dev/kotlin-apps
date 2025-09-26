@@ -4,6 +4,7 @@ data class EstadoPersona(
     val nombre: String = "",
     val apellido: String = "",
     val dni: String = "",
+    val correo: String = "",
     val foto: String? = null,
     val personas: List<Persona> = emptyList(),
     val mensaje: MensajeUI = MensajeUI.Ninguno,

@@ -5,8 +5,10 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "personas")
 data class Persona(
-    @PrimaryKey val dni: String,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val dni: String,
     val nombre: String,
     val apellido: String,
+    val correo: String,
     val foto: String? = null
 )
