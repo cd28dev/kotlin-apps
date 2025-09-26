@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.getValue
@@ -26,14 +27,17 @@ fun PantallaVisualizacionPersonas(
 ) {
     val estado by viewModel.estado.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.cargarPersonas()
+    }
+
     Column(Modifier.fillMaxSize()) {
         BarraSuperior("Personas Registradas")
 
         if (estado.personas.isNotEmpty()) {
             LazyColumn(Modifier.weight(1f).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(estado.personas) { persona ->
-                    PersonaCard(persona) {
-                        viewModel.seleccionarPersonaParaEliminar(persona) }
+                    PersonaCard(persona = persona, onEditar = {}, onEliminar = { viewModel.seleccionarPersonaParaEliminar(persona)})
                 }
             }
 
@@ -47,7 +51,7 @@ fun PantallaVisualizacionPersonas(
         DialogoConfirmacion(
             titulo = "Eliminar persona",
             mensaje = "¿Deseas eliminar a ${persona.nombre} ${persona.apellido}?",
-            alConfirmar = { viewModel.eliminarPersona(persona.dni) },
+            alConfirmar = { viewModel.eliminar(persona) },
             alCancelar = { viewModel.seleccionarPersonaParaEliminar(null) }
         )
     }

@@ -28,6 +28,6 @@ fun PiePagina(modifier: Modifier = Modifier) {
             .padding(Tamaños.EspacioChico),
         textAlign = TextAlign.Center,
         style = AppTypography.labelSmall,
-        color = ColoresApp.TextoSecundario
+        color = ColoresApp.Secundario
     )
 }

@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,19 +21,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.listaimagenes.domain.model.MensajeUI
 import kotlinx.coroutines.delay
-
 @Composable
 fun MostrarMensaje(mensaje: MensajeUI, onLimpiar: () -> Unit) {
     when (mensaje) {
         is MensajeUI.Exito -> {
-            Text(text = mensaje.texto, color = Color.Green)
+            Text(
+                text = mensaje.texto,
+                color = MaterialTheme.colorScheme.tertiary, // éxito → terciario
+                style = MaterialTheme.typography.bodyMedium
+            )
             LaunchedEffect(mensaje) {
                 delay(3000)
                 onLimpiar()
             }
         }
         is MensajeUI.Error -> {
-            Text(text = mensaje.texto, color = Color.Red)
+            Text(
+                text = mensaje.texto,
+                color = MaterialTheme.colorScheme.error, // error → error
+                style = MaterialTheme.typography.bodyMedium
+            )
             LaunchedEffect(mensaje) {
                 delay(3000)
                 onLimpiar()
@@ -49,16 +58,36 @@ fun MensajeVacio(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,     // superficie del tema
+            contentColor = MaterialTheme.colorScheme.onSurface      // texto adaptado
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(mensaje, textAlign = TextAlign.Center)
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = onClick, colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)) {
-                Text(textoBoton, color = Color.White)
+            Text(
+                mensaje,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = onClick,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary, // botón primario
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text(
+                    textoBoton,
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
     }

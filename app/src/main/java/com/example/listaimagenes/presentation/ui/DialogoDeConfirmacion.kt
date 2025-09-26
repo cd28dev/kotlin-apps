@@ -1,11 +1,12 @@
 package com.example.listaimagenes.presentation.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import com.example.listaimagenes.presentation.theme.AppTypography
-import com.example.listaimagenes.presentation.theme.ColoresApp
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun DialogoConfirmacion(
@@ -19,16 +20,16 @@ fun DialogoConfirmacion(
         title = {
             Text(
                 text = titulo,
-                style = AppTypography.titleLarge.copy(
-                    color = ColoresApp.Primario
+                style = MaterialTheme.typography.titleMedium.copy(
+                    color = MaterialTheme.colorScheme.primary
                 )
             )
         },
         text = {
             Text(
                 text = mensaje,
-                style = AppTypography.bodyMedium.copy(
-                    color = ColoresApp.TextoSecundario
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         },
@@ -36,8 +37,8 @@ fun DialogoConfirmacion(
             TextButton(onClick = alConfirmar) {
                 Text(
                     text = "Sí",
-                    style = AppTypography.bodyMedium.copy(
-                        color = ColoresApp.Confirmacion
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 )
             }
@@ -46,11 +47,13 @@ fun DialogoConfirmacion(
             TextButton(onClick = alCancelar) {
                 Text(
                     text = "Cancelar",
-                    style = AppTypography.bodyMedium.copy(
-                        color = ColoresApp.Error
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.error
                     )
                 )
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp)
     )
 }
