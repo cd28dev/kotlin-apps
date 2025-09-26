@@ -11,21 +11,24 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
@@ -36,87 +39,134 @@ import java.io.File
 
 @Composable
 fun PantallaCamara(
-    viewModel: PersonaViewModel = viewModel(),
-    alVolver: () -> Unit)
-{
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val context = LocalContext.current
-    val imageCapture = remember { mutableStateOf<ImageCapture?>(null) }
+    vistaModelo: PersonaViewModel = viewModel(),
+    alVolver: () -> Unit
+) {
+    val propietarioCiclo = LocalLifecycleOwner.current
+    val contexto = LocalContext.current
+    val capturaImagen = remember { mutableStateOf<ImageCapture?>(null) }
+    val camaraSel = remember { mutableStateOf(CameraSelector.DEFAULT_FRONT_CAMERA) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        CameraPreview(lifecycleOwner = lifecycleOwner, imageCaptureState = imageCapture)
+        VistaCamara(
+            propietarioCiclo = propietarioCiclo,
+            capturaImagen = capturaImagen,
+            camaraSel = camaraSel
+        )
 
-        CameraActions(
-            onCancelar = alVolver,
-            onTomarFoto = {
-                val capture = imageCapture.value ?: return@CameraActions
+        AccionesCamara(
+            alCancelar = alVolver,
+            alTomarFoto = {
+                val captura = capturaImagen.value ?: return@AccionesCamara
 
-                val picturesDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-                val file = File(picturesDir, "foto_${System.currentTimeMillis()}.jpg")
+                val dirFotos = contexto.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                val archivo = File(dirFotos, "foto_${System.currentTimeMillis()}.jpg")
 
-                val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
+                val opcionesSalida = ImageCapture.OutputFileOptions.Builder(archivo).build()
 
-                capture.takePicture(outputOptions, ContextCompat.getMainExecutor(context),
+                captura.takePicture(
+                    opcionesSalida,
+                    ContextCompat.getMainExecutor(contexto),
                     object : ImageCapture.OnImageSavedCallback {
-                        override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                            viewModel.establecerFoto(file.absolutePath)
-                            viewModel.mostrarCamara(false)
+                        override fun onImageSaved(resultado: ImageCapture.OutputFileResults) {
+                            vistaModelo.establecerFoto(archivo.absolutePath)
+                            vistaModelo.mostrarCamara(false)
                         }
 
-                        override fun onError(exception: ImageCaptureException) {
-                            exception.printStackTrace()
-                            Toast.makeText(context, "Error al capturar la foto", Toast.LENGTH_SHORT).show()
+                        override fun onError(error: ImageCaptureException) {
+                            error.printStackTrace()
+                            Toast.makeText(contexto, "Error al capturar la foto", Toast.LENGTH_SHORT).show()
                         }
-                    })
+                    }
+                )
+            },
+            alCambiarCamara = {
+                camaraSel.value =
+                    if (camaraSel.value == CameraSelector.DEFAULT_FRONT_CAMERA)
+                        CameraSelector.DEFAULT_BACK_CAMERA
+                    else
+                        CameraSelector.DEFAULT_FRONT_CAMERA
             }
         )
     }
 }
 
 @Composable
-fun CameraPreview(lifecycleOwner: LifecycleOwner, imageCaptureState: MutableState<ImageCapture?>) {
-    AndroidView(factory = { ctx ->
-        val previewView = PreviewView(ctx)
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
+fun VistaCamara(
+    propietarioCiclo: LifecycleOwner,
+    capturaImagen: MutableState<ImageCapture?>,
+    camaraSel: MutableState<CameraSelector>
+) {
+    val contexto = LocalContext.current
+    val vistaPreview = remember { PreviewView(contexto) }
 
-        cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
+    LaunchedEffect(camaraSel.value) {
+        val provCamaraFuturo = ProcessCameraProvider.getInstance(contexto)
+        val provCamara = provCamaraFuturo.get()
 
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(previewView.surfaceProvider)
-            }
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(vistaPreview.surfaceProvider)
+        }
 
-            val imageCapture = ImageCapture.Builder().build()
-            imageCaptureState.value = imageCapture
+        val captura = ImageCapture.Builder().build()
+        capturaImagen.value = captura
 
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+        try {
+            provCamara.unbindAll()
+            provCamara.bindToLifecycle(
+                propietarioCiclo,
+                camaraSel.value,
+                preview,
+                captura
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageCapture)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }, ContextCompat.getMainExecutor(ctx))
-
-        previewView
-    }, modifier = Modifier.fillMaxSize())
+    AndroidView(
+        factory = { vistaPreview },
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 
 @Composable
-fun CameraActions(onCancelar: () -> Unit, onTomarFoto: () -> Unit) {
+fun AccionesCamara(
+    alCancelar: () -> Unit,
+    alTomarFoto: () -> Unit,
+    alCambiarCamara: () -> Unit
+) {
     Column(
-        Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(onClick = onCancelar) { Text("Cancelar") }
-            Button(onClick = onTomarFoto) { Text("Tomar Foto") }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = alCancelar,
+                modifier = Modifier.height(36.dp).defaultMinSize(minWidth = 64.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text("Cancelar", fontSize = 12.sp)
+            }
+
+            Button(
+                onClick = alTomarFoto,
+                modifier = Modifier.height(36.dp).defaultMinSize(minWidth = 64.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text("Tomar Foto", fontSize = 12.sp)
+            }
+
+            Button(
+                onClick = alCambiarCamara,
+                modifier = Modifier.height(36.dp).defaultMinSize(minWidth = 64.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text("Cambiar Cámara", fontSize = 12.sp)
+            }
         }
     }
 }
