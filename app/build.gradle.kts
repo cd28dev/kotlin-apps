@@ -70,6 +70,7 @@ dependencies {
     // Room
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.foundation)
     kapt("androidx.room:room-compiler:2.8.0")
 
     // Testing
