@@ -1,7 +1,6 @@
 package com.example.listaimagenes.domain.usecase
 
 import android.content.ContentResolver
-import androidx.compose.ui.graphics.RectangleShape
 import com.example.listaimagenes.domain.model.Persona
 import com.example.listaimagenes.data.IPersonaRepository
 import java.io.File
@@ -37,6 +36,13 @@ class CasoUsoPersona(
         }
     }
 
+    suspend fun actualizar(persona:Persona):Resultado{
+        return if (repo.actualizar(persona) >0){
+            Resultado.Exito
+        }else{
+            Resultado.Error("Error al actualizar")
+        }
+    }
     suspend fun listar():List<Persona> {
         val personas = repo.listar()
         return personas
@@ -47,7 +53,6 @@ class CasoUsoPersona(
 
         if (eliminado==1 && persona?.foto != null) {
             try {
-                // Cambio principal: usar File.delete() en lugar de ContentResolver.delete()
                 val file = File(persona.foto)
                 if (file.exists()) {
                     val fotoEliminada = file.delete()

@@ -1,7 +1,10 @@
 package com.example.listaimagenes.presentation.ui
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,7 +18,8 @@ import com.example.listaimagenes.presentation.theme.AppTypography
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BarraSuperior(
-    titulo: String = "Facultades UNP",
+    titulo: String,
+    activity: Activity
 ) {
     TopAppBar(
         title = {
@@ -32,9 +36,19 @@ fun BarraSuperior(
                 )
             }
         },
+        actions = {
+            IconButton(onClick = { activity.finish() }) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar",
+                    tint = ColoresApp.TextoInverso
+                )
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = ColoresApp.Primario,
             titleContentColor = ColoresApp.TextoInverso
         )
     )
 }
+

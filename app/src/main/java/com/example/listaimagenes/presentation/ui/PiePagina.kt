@@ -22,7 +22,7 @@ fun PiePagina(modifier: Modifier = Modifier) {
     }
 
     Text(
-        text = "© 2024 UNP - Adanaque Pizarro, Huanca Flores, Pasache Pizarro   $horaActual",
+        text = "© 2025 - Adrianzen, Huanca, Pasache $horaActual",
         modifier = modifier
             .fillMaxWidth()
             .padding(Tamaños.EspacioChico),
