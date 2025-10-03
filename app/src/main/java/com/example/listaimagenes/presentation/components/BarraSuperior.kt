@@ -1,7 +1,6 @@
-package com.example.listaimagenes.presentation.ui
+package com.example.listaimagenes.presentation.components
 
 import android.app.Activity
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -9,10 +8,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import com.example.listaimagenes.presentation.theme.ColoresApp
 import com.example.listaimagenes.presentation.theme.Tamaños
-import com.example.listaimagenes.R
 import com.example.listaimagenes.presentation.theme.AppTypography
 
 @OptIn(ExperimentalMaterial3Api::class)

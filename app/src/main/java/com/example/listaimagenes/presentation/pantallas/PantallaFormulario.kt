@@ -2,7 +2,6 @@ package com.example.listaimagenes.presentation.pantallas
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -19,13 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,7 +29,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -52,9 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.listaimagenes.presentation.components.BotonesFormularioPersona
-import com.example.listaimagenes.presentation.ui.BarraSuperior
+import com.example.listaimagenes.presentation.components.BarraSuperior
 import com.example.listaimagenes.presentation.components.MostrarMensaje
-import com.example.listaimagenes.presentation.ui.PiePagina
+import com.example.listaimagenes.presentation.components.PiePagina
 import com.example.listaimagenes.presentation.viewmodel.PersonaViewModel
 import java.io.File
 import androidx.core.net.toUri

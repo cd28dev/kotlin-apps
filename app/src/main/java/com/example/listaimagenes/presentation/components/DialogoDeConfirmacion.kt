@@ -1,4 +1,4 @@
-package com.example.listaimagenes.presentation.ui
+package com.example.listaimagenes.presentation.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
