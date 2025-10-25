@@ -1,6 +1,7 @@
 package com.example.listaimagenes.domain.usecase
 
 import android.content.ContentResolver
+import android.graphics.BitmapFactory
 import com.example.listaimagenes.domain.model.Persona
 import com.example.listaimagenes.data.IPersonaRepository
 import java.io.File
@@ -14,6 +15,7 @@ class CasoUsoPersona(
     private val repo: IPersonaRepository,
     private val context : ContentResolver
 ) {
+    private val reconocimientoFacial = ReconocimientoFacial()
 
     suspend fun crear(persona : Persona):Resultado{
         validar(persona);
@@ -22,12 +24,39 @@ class CasoUsoPersona(
             return Resultado.Error("Ya existe una persona con ese DNI")
         }
 
+        // Generar embedding facial si hay foto
+        var faceEmbedding: String? = null
+        persona.foto?.let { fotoPath ->
+            try {
+                val bitmap = BitmapFactory.decodeFile(fotoPath)
+                if (bitmap != null) {
+                    when (val resultado = reconocimientoFacial.detectarYExtraerCaracteristicas(bitmap)) {
+                        is ResultadoDeteccion.Exito -> {
+                            faceEmbedding = resultado.embedding
+                        }
+                        is ResultadoDeteccion.SinRostro -> {
+                            return Resultado.Error("No se detectó ningún rostro en la imagen")
+                        }
+                        is ResultadoDeteccion.MultiplesRostros -> {
+                            return Resultado.Error("Se detectaron múltiples rostros. Use una imagen con un solo rostro")
+                        }
+                        is ResultadoDeteccion.Error -> {
+                            return Resultado.Error("Error al procesar el rostro: ${resultado.mensaje}")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                return Resultado.Error("Error al procesar la imagen: ${e.message}")
+            }
+        }
+
         val nuevaPersona = Persona(
             dni = persona.dni.trim(),
             nombre = persona.nombre.trim(),
             apellido = persona.apellido.trim(),
             foto = persona.foto?.trim(),
-            correo = persona.correo.trim()
+            correo = persona.correo.trim(),
+            faceEmbedding = faceEmbedding
         )
         return if (repo.crear(nuevaPersona)) {
             Resultado.Exito
@@ -67,6 +96,52 @@ class CasoUsoPersona(
         }
 
         return eliminado
+    }
+
+    suspend fun reconocerPersona(fotoPath: String): ResultadoReconocimiento {
+        return try {
+            val bitmap = BitmapFactory.decodeFile(fotoPath)
+            if (bitmap == null) {
+                return ResultadoReconocimiento.Error("No se pudo cargar la imagen")
+            }
+
+            // Detectar rostro y generar embedding
+            when (val resultado = reconocimientoFacial.detectarYExtraerCaracteristicas(bitmap)) {
+                is ResultadoDeteccion.Exito -> {
+                    // Obtener todas las personas con embeddings
+                    val personas = repo.listar()
+                    val personasConEmbedding = personas.mapNotNull { persona ->
+                        persona.faceEmbedding?.let { embedding ->
+                            Pair(persona, embedding)
+                        }
+                    }
+
+                    // Buscar coincidencia
+                    when (val busqueda = reconocimientoFacial.buscarPersonaMasSimilar(
+                        resultado.embedding, 
+                        personasConEmbedding
+                    )) {
+                        is ResultadoBusqueda.Encontrado -> {
+                            ResultadoReconocimiento.PersonaEncontrada(busqueda.persona, busqueda.similitud)
+                        }
+                        is ResultadoBusqueda.NoEncontrado -> {
+                            ResultadoReconocimiento.PersonaNoEncontrada(busqueda.razon)
+                        }
+                    }
+                }
+                is ResultadoDeteccion.SinRostro -> {
+                    ResultadoReconocimiento.Error("No se detectó ningún rostro en la imagen")
+                }
+                is ResultadoDeteccion.MultiplesRostros -> {
+                    ResultadoReconocimiento.Error("Se detectaron múltiples rostros. Use una imagen con un solo rostro")
+                }
+                is ResultadoDeteccion.Error -> {
+                    ResultadoReconocimiento.Error("Error al procesar el rostro: ${resultado.mensaje}")
+                }
+            }
+        } catch (e: Exception) {
+            ResultadoReconocimiento.Error("Error durante el reconocimiento: ${e.message}")
+        }
     }
 
     suspend fun limpiarTodas(): Boolean {
@@ -121,4 +196,13 @@ class CasoUsoPersona(
 
         return Resultado.Exito
     }
+}
+
+/**
+ * Resultado del reconocimiento de persona
+ */
+sealed class ResultadoReconocimiento {
+    data class PersonaEncontrada(val persona: Persona, val similitud: Float) : ResultadoReconocimiento()
+    data class PersonaNoEncontrada(val razon: String) : ResultadoReconocimiento()
+    data class Error(val mensaje: String) : ResultadoReconocimiento()
 }

@@ -10,5 +10,6 @@ data class Persona(
     val nombre: String,
     val apellido: String,
     val correo: String,
-    val foto: String? = null
+    val foto: String? = null,
+    val faceEmbedding: String? = null // Embedding facial como JSON string para comparación
 )

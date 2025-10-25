@@ -29,7 +29,8 @@ import java.io.File
 @Composable
 fun PantallaCamara(
     vistaModelo: PersonaViewModel = viewModel(),
-    alVolver: () -> Unit
+    alVolver: () -> Unit,
+    onFotoCapturada: ((String) -> Unit)? = null
 ) {
     val propietarioCiclo = LocalLifecycleOwner.current
     val contexto = LocalContext.current
@@ -61,9 +62,19 @@ fun PantallaCamara(
                     ContextCompat.getMainExecutor(contexto),
                     object : ImageCapture.OnImageSavedCallback {
                         override fun onImageSaved(resultado: ImageCapture.OutputFileResults) {
-                            vistaModelo.establecerFoto(photoFile.absolutePath)
-                            vistaModelo.mostrarCamara(false)
+                            val fotoPath = photoFile.absolutePath
+                            if (onFotoCapturada != null) {
+                                // Modo reconocimiento: usar callback personalizado
+                                onFotoCapturada(fotoPath)
+                            } else {
+                                // Modo registro: usar el PersonaViewModel
+                                android.util.Log.d("PantallaCamara", "📸 Foto capturada: $fotoPath")
+                                vistaModelo.establecerFoto(fotoPath)
+                                vistaModelo.mostrarCamara(false)
+                                android.util.Log.d("PantallaCamara", "🔄 Ocultando cámara y volviendo al formulario")
+                            }
                             Toast.makeText(contexto, "Foto capturada", Toast.LENGTH_SHORT).show()
+                            alVolver()
                         }
                         override fun onError(error: ImageCaptureException) {
                             Toast.makeText(contexto, "Error al capturar la foto", Toast.LENGTH_SHORT).show()
@@ -92,26 +103,38 @@ fun VistaCamara(
     val vistaPreview = remember { PreviewView(contexto) }
 
     LaunchedEffect(camaraSel.value) {
-        val provCamaraFuturo = ProcessCameraProvider.getInstance(contexto)
-        val provCamara = provCamaraFuturo.get()
-
-        val preview = Preview.Builder().build().also {
-            it.setSurfaceProvider(vistaPreview.surfaceProvider)
-        }
-
-        val captura = ImageCapture.Builder().build()
-        capturaImagen.value = captura
-
         try {
+            val provCamaraFuturo = ProcessCameraProvider.getInstance(contexto)
+            val provCamara = provCamaraFuturo.get()
+
+            // Configurar preview con mejor gestión de recursos  
+            val preview = Preview.Builder()
+                .setTargetRotation(android.view.Surface.ROTATION_0)
+                .build()
+                .also { it.setSurfaceProvider(vistaPreview.surfaceProvider) }
+
+            // Configurar captura de imagen optimizada
+            val captura = ImageCapture.Builder()
+                .setTargetRotation(android.view.Surface.ROTATION_0)
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .build()
+            
+            capturaImagen.value = captura
+
+            // Asegurar cierre limpio antes de nueva configuración
             provCamara.unbindAll()
+            
+            // Vincular casos de uso a la cámara
             provCamara.bindToLifecycle(
                 propietarioCiclo,
                 camaraSel.value,
                 preview,
                 captura
             )
+            
         } catch (e: Exception) {
-            e.printStackTrace()
+            // Log específico para diagnóstico de problemas de cámara
+            android.util.Log.e("PantallaCamara", "Error configurando cámara: ${e.message}", e)
         }
     }
 

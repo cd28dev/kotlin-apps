@@ -63,7 +63,24 @@ fun PantallaFormularioPersona(
     val estado by viewModel.estado.collectAsState()
     val activity = LocalContext.current as Activity
     val context = LocalContext.current
-    val camposLlenos = estado.nombre.isNotBlank() && estado.apellido.isNotBlank() && estado.dni.isNotBlank() && !estado.foto.isNullOrBlank() && estado.correo.isNotBlank()
+    
+    // 🐛 DEBUG: Verificar estado de campos para diagnóstico
+    val camposLlenos = estado.nombre.isNotBlank() && 
+                       estado.apellido.isNotBlank() && 
+                       estado.dni.isNotBlank() && 
+                       estado.correo.isNotBlank() && 
+                       !estado.foto.isNullOrBlank()
+    
+    // 🔍 DEBUG: Log para depuración (eliminar en producción)
+    android.util.Log.d("PantallaFormulario", 
+        "Estado: nombre=${estado.nombre.isNotBlank()}, " +
+        "apellido=${estado.apellido.isNotBlank()}, " +
+        "dni=${estado.dni.isNotBlank()}, " +
+        "correo=${estado.correo.isNotBlank()}, " +
+        "foto=${!estado.foto.isNullOrBlank()} (${estado.foto}), " +
+        "esEdicion=${estado.esEdicion}, " +
+        "camposLlenos=$camposLlenos"
+    )
 
     if(estado.mostrarCamara) {
         PantallaCamara(alVolver={viewModel.mostrarCamara(false)})
@@ -317,21 +334,22 @@ fun PantallaFormularioPersona(
             BotonesFormularioPersona(
                 esEdicion = estado.esEdicion,
                 camposLlenos = camposLlenos,
+                procesandoRegistro = estado.procesandoRegistro,
                 onRegistrar = {
                     viewModel.crear(context) { exito ->
-                        if (exito) alIrAVisualizacion()
+                        if (exito) {
+                            // No navegar automáticamente, el usuario puede usar el navbar
+                        }
                     }
                 },
                 onActualizar = {
                     viewModel.actualizar(context) { exito ->
-                        if (exito) alIrAVisualizacion()
+                        if (exito) {
+                            // No navegar automáticamente, el usuario puede usar el navbar
+                        }
                     }
                 },
-                onVerPersonas = {
-                    viewModel.cargarPersonas {
-                        alIrAVisualizacion()
-                    }
-                },
+                onVerPersonas = { /* Función vacía - botón eliminado */ },
                 onCancelar = { viewModel.cancelarEdicion() }
             )
 

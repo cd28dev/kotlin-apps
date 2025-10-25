@@ -33,11 +33,14 @@ import androidx.compose.ui.unit.dp
 fun BotonesFormularioPersona(
     esEdicion: Boolean,
     camposLlenos: Boolean,
+    procesandoRegistro: Boolean = false,
     onRegistrar: () -> Unit,
     onActualizar: () -> Unit,
     onVerPersonas: () -> Unit,
     onCancelar: () -> Unit
 ) {
+    // 🔍 DEBUG: Log para verificar estado de botones
+    android.util.Log.d("BotonesFormulario", "esEdicion=$esEdicion, camposLlenos=$camposLlenos, procesando=$procesandoRegistro")
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -166,18 +169,25 @@ fun BotonesFormularioPersona(
                     )
                 }
             } else {
-                // Botón Registrar - Colores verdes
+                // Botón Registrar - Colores verdes con estado de procesando
                 Box(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .height(56.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(
-                            brush = if (camposLlenos) {
+                            brush = if (camposLlenos && !procesandoRegistro) {
                                 Brush.linearGradient(
                                     colors = listOf(
                                         Color(0xFF56CA00), // Verde vibrante
                                         Color(0xFF6BCF7F)  // Verde claro
+                                    )
+                                )
+                            } else if (procesandoRegistro) {
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        Color(0xFF4CAF50), // Verde más oscuro para procesando
+                                        Color(0xFF66BB6A)
                                     )
                                 )
                             } else {
@@ -189,29 +199,38 @@ fun BotonesFormularioPersona(
                                 )
                             }
                         )
-                        .clickable(enabled = camposLlenos) { onRegistrar() },
+                        .clickable(enabled = camposLlenos && !procesandoRegistro) { onRegistrar() },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            tint = if (camposLlenos) Color.White else Color.Gray,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        if (procesandoRegistro) {
+                            // Indicador de carga cuando está procesando
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                tint = if (camposLlenos) Color.White else Color.Gray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         Text(
-                            "Registrar",
+                            if (procesandoRegistro) "Registrando..." else "Registrar",
                             style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = if (camposLlenos) Color.White else Color.Gray
+                                color = if (camposLlenos || procesandoRegistro) Color.White else Color.Gray
                             )
                         )
                     }
 
-                    if (camposLlenos) {
+                    if ((camposLlenos && !procesandoRegistro) || procesandoRegistro) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -231,59 +250,7 @@ fun BotonesFormularioPersona(
                     }
                 }
 
-                // Botón Ver Personas - Colores azules
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Transparent)
-                        .border(
-                            width = 2.dp,
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFF4A90E2).copy(alpha = 0.6f), // Azul principal
-                                    Color(0xFF5BA3F5).copy(alpha = 0.6f)  // Azul claro
-                                )
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .clickable { onVerPersonas() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF4A90E2).copy(alpha = 0.05f),
-                                        Color(0xFF5BA3F5).copy(alpha = 0.05f)
-                                    )
-                                )
-                            )
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.List,
-                            contentDescription = null,
-                            tint = Color(0xFF4A90E2),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            "Ver Personas",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4A90E2)
-                            )
-                        )
-                    }
-                }
+                // El botón "Ver Personas" se eliminó porque está en el navbar
             }
         }
     }

@@ -67,6 +67,12 @@ dependencies {
     // Carga de imágenes
     implementation("io.coil-kt:coil-compose:2.4.0")
 
+    // ML Kit Face Detection
+    implementation("com.google.mlkit:face-detection:16.1.5")
+    
+    // Corrutinas para Tasks de Google Play Services
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    
     // Room
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.common.jvm)

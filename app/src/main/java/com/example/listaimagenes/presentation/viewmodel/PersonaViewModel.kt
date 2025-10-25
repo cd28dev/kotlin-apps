@@ -41,7 +41,9 @@ class PersonaViewModel() : ViewModel() {
         _estado.update { it.copy(dni = v) }
     }
     fun establecerFoto(ruta: String) {
+        android.util.Log.d("PersonaViewModel", "🔥 Estableciendo foto: $ruta")
         _estado.update { it.copy(foto = ruta) }
+        android.util.Log.d("PersonaViewModel", "✅ Estado actualizado: foto=${_estado.value.foto}")
     }
 
     fun limpiarFoto() {
@@ -60,6 +62,16 @@ class PersonaViewModel() : ViewModel() {
 
     fun crear(context: Context, onExito: (Boolean) -> Unit) {
         val e = _estado.value
+        
+        // 🛡️ Evitar múltiples ejecuciones
+        if (e.procesandoRegistro) {
+            Log.d("PersonaViewModel", "⚠️ Ya se está procesando un registro, ignorando...")
+            return
+        }
+        
+        Log.d("PersonaViewModel", "🚀 Iniciando registro de persona...")
+        _estado.update { it.copy(procesandoRegistro = true) }
+        
         viewModelScope.launch {
             try {
                 val fotoFinal = e.foto?.let { rutaTemp ->
@@ -91,10 +103,11 @@ class PersonaViewModel() : ViewModel() {
                             it.copy(
                                 dni = "", nombre = "", apellido = "", correo = "", foto = null,
                                 personas = personas,
+                                procesandoRegistro = false,
                                 mensaje = MensajeUI.Exito("Persona agregada correctamente")
                             )
                         }
-                        delay(3000)
+                        Log.d("PersonaViewModel", "✅ Persona registrada exitosamente")
                         onExito(true)
                     }
                     is Resultado.Error -> {
@@ -107,12 +120,14 @@ class PersonaViewModel() : ViewModel() {
                                 }
                             }
                         }
-                        _estado.update { it.copy(mensaje = MensajeUI.Error(resultado.mensaje)) }
+                        _estado.update { it.copy(procesandoRegistro = false, mensaje = MensajeUI.Error(resultado.mensaje)) }
+                        Log.e("PersonaViewModel", "❌ Error al registrar persona: ${resultado.mensaje}")
                         onExito(false)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ViewModel", "Error en crear", e)
+                Log.e("ViewModel", "💥 Exception en crear", e)
+                _estado.update { it.copy(procesandoRegistro = false) }
                 onExito(false)
             }
         }
@@ -121,6 +136,15 @@ class PersonaViewModel() : ViewModel() {
     fun actualizar(context: Context, onExito: (Boolean) -> Unit) {
         val e = _estado.value
         val personaOriginal = e.personaSeleccionada ?: return
+        
+        // 🛡️ Evitar múltiples ejecuciones
+        if (e.procesandoRegistro) {
+            Log.d("PersonaViewModel", "⚠️ Ya se está procesando una actualización, ignorando...")
+            return
+        }
+        
+        Log.d("PersonaViewModel", "🔄 Iniciando actualización de persona...")
+        _estado.update { it.copy(procesandoRegistro = true) }
 
         viewModelScope.launch {
             try {
@@ -157,21 +181,25 @@ class PersonaViewModel() : ViewModel() {
                                 nombre = "", apellido = "", dni = "", correo = "", foto = null,
                                 personaSeleccionada = null,
                                 esEdicion = false,
+                                procesandoRegistro = false,
                                 personas = personas,
                                 mensaje = MensajeUI.Exito("Persona actualizada")
                             )
                         }
+                        Log.d("PersonaViewModel", "✅ Persona actualizada exitosamente")
                         onExito(true)
                     }
                     is Resultado.Error -> {
                         _estado.update {
-                            it.copy(mensaje = MensajeUI.Error(resultado.mensaje))
+                            it.copy(procesandoRegistro = false, mensaje = MensajeUI.Error(resultado.mensaje))
                         }
+                        Log.e("PersonaViewModel", "❌ Error al actualizar persona: ${resultado.mensaje}")
                         onExito(false)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ViewModel", "Error en actualizar", e)
+                Log.e("ViewModel", "💥 Exception en actualizar", e)
+                _estado.update { it.copy(procesandoRegistro = false) }
                 onExito(false)
             }
         }

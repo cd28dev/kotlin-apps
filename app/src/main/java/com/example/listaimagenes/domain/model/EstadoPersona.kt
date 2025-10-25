@@ -12,5 +12,6 @@ data class EstadoPersona(
     val mostrarCamara: Boolean = false,
     val mostrarConfirmacionEliminar: Boolean = false,
     val mostrarConfirmacionLimpiarTodo: Boolean = false,
-    val esEdicion: Boolean = false
+    val esEdicion: Boolean = false,
+    val procesandoRegistro: Boolean = false
 )

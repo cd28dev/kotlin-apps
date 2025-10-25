@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.listaimagenes.domain.model.Persona
 
-@Database(entities = [Persona::class], version = 1)
+@Database(entities = [Persona::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun personaDao(): PersonaDao
     companion object {

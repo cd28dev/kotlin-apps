@@ -26,7 +26,7 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
 
     override suspend fun listar(): List<Persona> {
         return dao.listar().map {
-            Persona(it.id, it.dni,it.nombre, it.apellido,it.correo, it.foto)
+            Persona(it.id, it.dni,it.nombre, it.apellido,it.correo, it.foto, it.faceEmbedding)
         }
     }
 
@@ -34,7 +34,7 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
         return try {
             val entidad = dao.obtenerPersonaPorDni(dni)
             entidad?.let {
-                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.foto)
+                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.foto, it.faceEmbedding)
             }
         } catch (e: Exception) {
             null
@@ -45,7 +45,7 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
         return try {
             val entidad = dao.obtenerPersonaPorId(id)
             entidad?.let {
-                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.foto)
+                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.foto, it.faceEmbedding)
             }
         } catch (e: Exception) {
             null

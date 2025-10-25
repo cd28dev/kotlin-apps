@@ -33,71 +33,18 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BotonesVisualizacion(
-    alVolverFormulario: () -> Unit,
+    alVolverFormulario: () -> Unit, // Parámetro mantenido para compatibilidad pero no usado
     alLimpiarTodo: () -> Unit
 ) {
-    Row(
+    // Solo mostrar botón "Limpiar Todo" - el navbar maneja la navegación
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(16.dp)
     ) {
         Box(
             modifier = Modifier
-                .weight(1f)
-                .height(56.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF4A90E2),
-                            Color(0xFF5BA3F5)
-                        )
-                    )
-                )
-                .clickable { alVolverFormulario() },
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    "Formulario",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.2f),
-                                Color.Transparent,
-                                Color.Transparent
-                            ),
-                            start = Offset(0f, 0f),
-                            end = Offset(200f, 200f)
-                        )
-                    )
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .height(56.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(
@@ -122,7 +69,7 @@ fun BotonesVisualizacion(
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
-                    "Limpiar",
+                    "Limpiar Todo",
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
