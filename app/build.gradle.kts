@@ -70,6 +70,11 @@ dependencies {
     // ML Kit Face Detection
     implementation("com.google.mlkit:face-detection:16.1.5")
     
+    // TensorFlow Lite para embeddings faciales reales
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+    implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0") // GPU opcional
+    
     // Corrutinas para Tasks de Google Play Services
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     

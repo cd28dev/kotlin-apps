@@ -15,7 +15,8 @@ object PersonaManager {
         repositorio = RepositorioPersona(dao)
         casoUso = CasoUsoPersona(
             repositorio,
-            context.contentResolver
+            context.contentResolver,
+            context
         )
     }
 }

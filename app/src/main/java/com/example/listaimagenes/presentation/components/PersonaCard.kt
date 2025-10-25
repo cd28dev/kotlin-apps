@@ -112,10 +112,10 @@ fun PersonaCard(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (persona.foto != null) {
+                    if (persona.imagenFacial != null && persona.imagenFacial.isNotEmpty()) {
                         AsyncImage(
-                            model = Uri.parse(persona.foto),
-                            contentDescription = "Foto",
+                            model = com.example.listaimagenes.domain.utils.UtilidadesImagen.byteArrayABitmap(persona.imagenFacial),
+                            contentDescription = "Imagen facial",
                             modifier = Modifier
                                 .size(68.dp)
                                 .clip(CircleShape),
@@ -138,7 +138,7 @@ fun PersonaCard(
                         ) {
                             Icon(
                                 Icons.Default.Person,
-                                contentDescription = "Sin foto",
+                                contentDescription = "Sin imagen facial",
                                 tint = Color.White,
                                 modifier = Modifier.size(36.dp)
                             )

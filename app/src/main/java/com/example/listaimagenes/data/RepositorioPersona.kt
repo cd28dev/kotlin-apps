@@ -25,16 +25,14 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
     }
 
     override suspend fun listar(): List<Persona> {
-        return dao.listar().map {
-            Persona(it.id, it.dni,it.nombre, it.apellido,it.correo, it.foto, it.faceEmbedding)
-        }
+        return dao.listar() // Ya no necesitamos mapeo, Room maneja la entidad directamente
     }
 
     override suspend fun obtenerPersonaPorDni(dni: String): Persona? {
         return try {
             val entidad = dao.obtenerPersonaPorDni(dni)
             entidad?.let {
-                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.foto, it.faceEmbedding)
+                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.imagenFacial, it.embeddingFacial)
             }
         } catch (e: Exception) {
             null
@@ -45,7 +43,7 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
         return try {
             val entidad = dao.obtenerPersonaPorId(id)
             entidad?.let {
-                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.foto, it.faceEmbedding)
+                Persona(it.id, it.dni, it.nombre, it.apellido, it.correo, it.imagenFacial, it.embeddingFacial)
             }
         } catch (e: Exception) {
             null

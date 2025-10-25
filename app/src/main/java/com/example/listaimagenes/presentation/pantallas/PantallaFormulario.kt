@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -65,11 +67,12 @@ fun PantallaFormularioPersona(
     val context = LocalContext.current
     
     // 🐛 DEBUG: Verificar estado de campos para diagnóstico
+    val imagenFacial = estado.imagenFacial
     val camposLlenos = estado.nombre.isNotBlank() && 
                        estado.apellido.isNotBlank() && 
                        estado.dni.isNotBlank() && 
                        estado.correo.isNotBlank() && 
-                       !estado.foto.isNullOrBlank()
+                       imagenFacial != null && imagenFacial.isNotEmpty()
     
     // 🔍 DEBUG: Log para depuración (eliminar en producción)
     android.util.Log.d("PantallaFormulario", 
@@ -77,7 +80,7 @@ fun PantallaFormularioPersona(
         "apellido=${estado.apellido.isNotBlank()}, " +
         "dni=${estado.dni.isNotBlank()}, " +
         "correo=${estado.correo.isNotBlank()}, " +
-        "foto=${!estado.foto.isNullOrBlank()} (${estado.foto}), " +
+        "imagenFacial=${imagenFacial != null && imagenFacial.isNotEmpty()} (size=${imagenFacial?.size ?: 0}), " +
         "esEdicion=${estado.esEdicion}, " +
         "camposLlenos=$camposLlenos"
     )
@@ -88,13 +91,18 @@ fun PantallaFormularioPersona(
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().
-        background(MaterialTheme.colorScheme.background)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        BarraSuperior("Registro de Persona",activity)
+        BarraSuperior("Registro de Persona", activity)
 
+        // Scrollable content
         Column(
-            modifier = Modifier.weight(1f).padding(20.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(20.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Card(
@@ -238,52 +246,50 @@ fun PantallaFormularioPersona(
                     verticalArrangement = Arrangement.Center
                 )
                 {
-                    estado.foto?.let {
-                        Card(
-                            shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(4.dp)
-                        ) {
-                            AsyncImage(
-                                model = if (it.startsWith("content://")) {
-                                    it.toUri()
-                                } else {
-                                    File(it)
-                                },
-                                contentDescription = "Foto",
-                                modifier = Modifier
-                                    .size(160.dp)
-                                    .clip(RoundedCornerShape(16.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-
-                        Spacer(Modifier.height(12.dp))
-
-                        TextButton(
-                            onClick = { viewModel.limpiarFoto() },
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                "Eliminar foto",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Medium
+                    estado.imagenFacial?.let { byteArray ->
+                        if (byteArray.isNotEmpty()) {
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                elevation = CardDefaults.cardElevation(4.dp)
+                            ) {
+                                AsyncImage(
+                                    model = com.example.listaimagenes.domain.utils.UtilidadesImagen.byteArrayABitmap(byteArray),
+                                    contentDescription = "Imagen facial",
+                                    modifier = Modifier
+                                        .size(100.dp) // Reducido de 160.dp a 100.dp
+                                        .clip(RoundedCornerShape(16.dp)),
+                                    contentScale = ContentScale.Crop
                                 )
-                            )
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
+                            TextButton(
+                                onClick = { viewModel.limpiarImagenFacial() },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    "Eliminar imagen",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                )
+                            }
                         }
                     } ?: Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(120.dp)
+                                .size(90.dp) // Reducido de 120.dp a 90.dp
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
@@ -298,12 +304,12 @@ fun PantallaFormularioPersona(
                             Icon(
                                 Icons.Default.AccountBox,
                                 contentDescription = null,
-                                modifier = Modifier.size(48.dp),
+                                modifier = Modifier.size(36.dp), // Reducido de 48.dp a 36.dp
                                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                             )
                         }
 
-                        Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(8.dp))
 
                         Button(
                             onClick = { viewModel.mostrarCamara(true) },
@@ -321,7 +327,7 @@ fun PantallaFormularioPersona(
                             )
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                "Tomar Foto",
+                                "Capturar Imagen",
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontWeight = FontWeight.Medium
                                 )

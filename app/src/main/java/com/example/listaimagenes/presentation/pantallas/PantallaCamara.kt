@@ -69,7 +69,9 @@ fun PantallaCamara(
                             } else {
                                 // Modo registro: usar el PersonaViewModel
                                 android.util.Log.d("PantallaCamara", "📸 Foto capturada: $fotoPath")
-                                vistaModelo.establecerFoto(fotoPath)
+                                // Convertir la imagen a Bitmap y establecer en el ViewModel
+                                val bitmap = android.graphics.BitmapFactory.decodeFile(fotoPath)
+                                vistaModelo.establecerImagenFacial(bitmap)
                                 vistaModelo.mostrarCamara(false)
                                 android.util.Log.d("PantallaCamara", "🔄 Ocultando cámara y volviendo al formulario")
                             }

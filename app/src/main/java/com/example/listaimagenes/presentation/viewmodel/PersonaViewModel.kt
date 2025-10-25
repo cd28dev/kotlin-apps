@@ -1,8 +1,7 @@
 package com.example.listaimagenes.presentation.viewmodel
 
-import android.content.ContentValues
 import android.content.Context
-import android.provider.MediaStore
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,15 +10,12 @@ import com.example.listaimagenes.domain.model.MensajeUI
 import com.example.listaimagenes.domain.model.Persona
 import com.example.listaimagenes.domain.usecase.PersonaManager
 import com.example.listaimagenes.domain.usecase.Resultado
-import kotlinx.coroutines.Dispatchers
+import com.example.listaimagenes.domain.utils.UtilidadesImagen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
-import kotlin.let
 
 class PersonaViewModel() : ViewModel() {
     private val casoUso = PersonaManager.casoUso
@@ -40,23 +36,15 @@ class PersonaViewModel() : ViewModel() {
     fun actualizarDni(v: String) {
         _estado.update { it.copy(dni = v) }
     }
-    fun establecerFoto(ruta: String) {
-        android.util.Log.d("PersonaViewModel", "🔥 Estableciendo foto: $ruta")
-        _estado.update { it.copy(foto = ruta) }
-        android.util.Log.d("PersonaViewModel", "✅ Estado actualizado: foto=${_estado.value.foto}")
+    fun establecerImagenFacial(bitmap: Bitmap) {
+        Log.d("PersonaViewModel", "🔥 Estableciendo imagen facial")
+        val byteArray = UtilidadesImagen.bitmapAByteArray(bitmap)
+        _estado.update { it.copy(imagenFacial = byteArray) }
+        Log.d("PersonaViewModel", "✅ Estado actualizado: imagenFacial size=${byteArray?.size ?: 0}")
     }
 
-    fun limpiarFoto() {
-        _estado.value.foto?.let { ruta ->
-            if (ruta.contains("temp_foto")) {
-                try {
-                    File(ruta).delete()
-                } catch (e: Exception) {
-                    Log.e("ViewModel", "Error al eliminar foto temporal", e)
-                }
-            }
-        }
-        _estado.update { it.copy(foto = null) }
+    fun limpiarImagenFacial() {
+        _estado.update { it.copy(imagenFacial = null) }
         System.gc()
     }
 
@@ -74,34 +62,20 @@ class PersonaViewModel() : ViewModel() {
         
         viewModelScope.launch {
             try {
-                val fotoFinal = e.foto?.let { rutaTemp ->
-                    guardarFotoEnGaleria(File(rutaTemp), context)
-                }
-
                 val persona = Persona(
                     nombre = e.nombre,
                     apellido = e.apellido,
                     dni = e.dni,
                     correo = e.correo,
-                    foto = fotoFinal
+                    imagenFacial = e.imagenFacial
                 )
 
                 when (val resultado = casoUso.crear(persona)) {
                     is Resultado.Exito -> {
-                        e.foto?.let { rutaTemp ->
-                            if (rutaTemp.contains("temp_foto")) {
-                                try {
-                                    File(rutaTemp).delete()
-                                } catch (ex: Exception) {
-                                    Log.e("ViewModel", "Error al eliminar archivo temporal", ex)
-                                }
-                            }
-                        }
-
                         val personas = casoUso.listar()
                         _estado.update {
                             it.copy(
-                                dni = "", nombre = "", apellido = "", correo = "", foto = null,
+                                dni = "", nombre = "", apellido = "", correo = "", imagenFacial = null,
                                 personas = personas,
                                 procesandoRegistro = false,
                                 mensaje = MensajeUI.Exito("Persona agregada correctamente")
@@ -111,15 +85,6 @@ class PersonaViewModel() : ViewModel() {
                         onExito(true)
                     }
                     is Resultado.Error -> {
-                        e.foto?.let { rutaTemp ->
-                            if (rutaTemp.contains("temp_foto")) {
-                                try {
-                                    File(rutaTemp).delete()
-                                } catch (ex: Exception) {
-                                    Log.e("ViewModel", "Error al eliminar archivo temporal", ex)
-                                }
-                            }
-                        }
                         _estado.update { it.copy(procesandoRegistro = false, mensaje = MensajeUI.Error(resultado.mensaje)) }
                         Log.e("PersonaViewModel", "❌ Error al registrar persona: ${resultado.mensaje}")
                         onExito(false)
@@ -148,29 +113,12 @@ class PersonaViewModel() : ViewModel() {
 
         viewModelScope.launch {
             try {
-                var fotoFinal = personaOriginal.foto
-
-                if (e.foto != null && e.foto != personaOriginal.foto) {
-                    personaOriginal.foto?.let { uriAntigua ->
-                        eliminarFotoDeGaleria(context, uriAntigua)
-                    }
-                    fotoFinal = guardarFotoEnGaleria(File(e.foto!!), context)
-
-                    if (e.foto.contains("temp_foto")) {
-                        try {
-                            File(e.foto).delete()
-                        } catch (ex: Exception) {
-                            Log.e("ViewModel", "Error al eliminar archivo temporal", ex)
-                        }
-                    }
-                }
-
                 val persona = personaOriginal.copy(
                     nombre = e.nombre,
                     apellido = e.apellido,
                     dni = e.dni,
                     correo = e.correo,
-                    foto = fotoFinal
+                    imagenFacial = e.imagenFacial ?: personaOriginal.imagenFacial
                 )
 
                 when (val resultado = casoUso.actualizar(persona)) {
@@ -178,7 +126,7 @@ class PersonaViewModel() : ViewModel() {
                         val personas = casoUso.listar()
                         _estado.update {
                             it.copy(
-                                nombre = "", apellido = "", dni = "", correo = "", foto = null,
+                                nombre = "", apellido = "", dni = "", correo = "", imagenFacial = null,
                                 personaSeleccionada = null,
                                 esEdicion = false,
                                 procesandoRegistro = false,
@@ -206,46 +154,17 @@ class PersonaViewModel() : ViewModel() {
     }
 
 
-    private fun guardarFotoEnGaleria(archivo: File, contexto: Context): String? {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, archivo.name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Camera")
-        }
 
-        val resolver = contexto.contentResolver
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-        uri?.let {
-            resolver.openOutputStream(it)?.use { outputStream ->
-                archivo.inputStream().use { inputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            }
-            return it.toString()
-        }
-        return null
-    }
 
 
     fun cancelarEdicion() {
-        _estado.value.foto?.let { ruta ->
-            if (ruta.contains("temp_foto")) {
-                try {
-                    File(ruta).delete()
-                } catch (e: Exception) {
-                    Log.e("ViewModel", "Error al eliminar archivo temporal", e)
-                }
-            }
-        }
-
         _estado.update {
             it.copy(
                 nombre = "",
                 apellido = "",
                 dni = "",
                 correo = "",
-                foto = null,
+                imagenFacial = null,
                 personaSeleccionada = null,
                 esEdicion = false
             )
@@ -268,8 +187,6 @@ class PersonaViewModel() : ViewModel() {
 
             val exitoso = casoUso.eliminar(persona)
             if (exitoso == 1) {
-                eliminarFotoDeGaleria(context, persona.foto)
-
                 _estado.update {
                     it.copy(
                         personas = casoUso.listar(),
@@ -291,16 +208,11 @@ class PersonaViewModel() : ViewModel() {
 
     fun limpiarTodo(context: Context) {
         viewModelScope.launch {
-            val personas = casoUso.listar()
-            personas.forEach { persona ->
-                eliminarFotoDeGaleria(context, persona.foto)
-            }
-
             _estado.update {
                 it.copy(
                     personas = emptyList(),
                     personaSeleccionada = null,
-                    foto = null
+                    imagenFacial = null
                 )
             }
             System.gc()
@@ -355,21 +267,13 @@ class PersonaViewModel() : ViewModel() {
                 apellido = persona.apellido,
                 dni = persona.dni,
                 correo = persona.correo,
-                foto = persona.foto,
+                imagenFacial = persona.imagenFacial,
                 personaSeleccionada = persona,
                 esEdicion = true
             )
         }
     }
 
-    private fun eliminarFotoDeGaleria(context: Context, uriString: String?) {
-        if (uriString.isNullOrBlank()) return
-        try {
-            val uri = android.net.Uri.parse(uriString)
-            val rows = context.contentResolver.delete(uri, null, null)
-        } catch (e: Exception) {
-            Log.e("ViewModel", "Error al eliminar foto de galería", e)
-        }
-    }
+
 
 }

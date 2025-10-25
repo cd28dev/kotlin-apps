@@ -1,45 +1,61 @@
 package com.example.listaimagenes.domain.usecase
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import com.google.mlkit.vision.face.FaceLandmark
+import com.example.listaimagenes.domain.ml.GeneradorEmbeddingsFaciales
+import com.example.listaimagenes.domain.model.Persona
 import kotlinx.coroutines.tasks.await
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 /**
- * Clase para manejar el reconocimiento facial usando ML Kit
+ * Clase mejorada para reconocimiento facial usando ML Kit + TensorFlow Lite
+ * Implementa embeddings reales según requisitos de la guía
  */
-class ReconocimientoFacial {
+class ReconocimientoFacial(private val contexto: Context) {
 
-    private val detector = FaceDetection.getClient(
+    private val detectorRostros = FaceDetection.getClient(
         FaceDetectorOptions.Builder()
             .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
-            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE) // No necesitamos landmarks
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
             .build()
     )
+    
+    private val generadorEmbeddings = GeneradorEmbeddingsFaciales(contexto)
+    
+    init {
+        // Inicializar modelo TensorFlow Lite al crear la instancia
+        generadorEmbeddings.inicializarModelo()
+    }
 
     /**
-     * Detecta rostros en imagen y extrae características faciales únicas
-     * Analiza puntos clave del rostro para crear "huella dactilar" facial
+     * Detecta rostros en imagen y genera embedding facial usando TensorFlow Lite
+     * @param imagenRostro Bitmap de la imagen completa
+     * @return ResultadoDeteccion con embedding facial o error
      */
     suspend fun detectarYExtraerCaracteristicas(imagenRostro: Bitmap): ResultadoDeteccion {
         return try {
             val imagenProcesar = InputImage.fromBitmap(imagenRostro, 0)
-            val rostrosDetectados = detector.process(imagenProcesar).await()
+            val rostrosDetectados = detectorRostros.process(imagenProcesar).await()
             
             when {
                 rostrosDetectados.isEmpty() -> ResultadoDeteccion.SinRostro
                 rostrosDetectados.size > 1 -> ResultadoDeteccion.MultiplesRostros
                 else -> {
                     val rostro = rostrosDetectados.first()
-                    val caracteristicasFaciales = extraerCaracteristicasFaciales(rostro)
-                    ResultadoDeteccion.Exito(rostro, caracteristicasFaciales)
+                    val rostroRecortado = recortarRostroDeImagen(imagenRostro, rostro.boundingBox)
+                    val embedding = generadorEmbeddings.generarEmbedding(rostroRecortado)
+                    
+                    if (embedding != null) {
+                        val embeddingString = generadorEmbeddings.embeddingAString(embedding)
+                        ResultadoDeteccion.Exito(rostro, embeddingString)
+                    } else {
+                        ResultadoDeteccion.Error("No se pudo generar embedding facial")
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -48,151 +64,101 @@ class ReconocimientoFacial {
     }
 
     /**
-     * Extrae las características únicas del rostro para crear su "huella digital"
-     * Analiza proporciones, distancias y posiciones de puntos clave faciales
-     * Normaliza valores para garantizar comparaciones precisas entre fotos
+     * Recorta el rostro detectado de la imagen completa
+     * @param imagenCompleta Bitmap de la imagen original
+     * @param marcaRostro Rectángulo del rostro detectado por ML Kit
+     * @return Bitmap del rostro recortado
      */
-    private fun extraerCaracteristicasFaciales(rostroDetectado: Face): String {
-        val caracteristicas = mutableListOf<Float>()
+    private fun recortarRostroDeImagen(imagenCompleta: Bitmap, marcaRostro: Rect): Bitmap {
+        // Expandir el rectángulo ligeramente para capturar más contexto facial
+        val expansion = 0.2f
+        val anchoExpansion = (marcaRostro.width() * expansion).toInt()
+        val altoExpansion = (marcaRostro.height() * expansion).toInt()
         
-        // Dimensiones del rostro normalizadas para comparación consistente
-        val marcoRostro = rostroDetectado.boundingBox
-        caracteristicas.add(marcoRostro.width().toFloat() / 1000f) // Ancho normalizado
-        caracteristicas.add(marcoRostro.height().toFloat() / 1000f) // Alto normalizado
+        val izquierda = maxOf(0, marcaRostro.left - anchoExpansion)
+        val arriba = maxOf(0, marcaRostro.top - altoExpansion)
+        val derecha = minOf(imagenCompleta.width, marcaRostro.right + anchoExpansion)
+        val abajo = minOf(imagenCompleta.height, marcaRostro.bottom + altoExpansion)
         
-        // Proporción facial (ratio ancho/alto) - característica única de cada persona
-        val proporcionFacial = marcoRostro.width().toFloat() / marcoRostro.height().toFloat()
-        caracteristicas.add(proporcionFacial)
+        val ancho = derecha - izquierda
+        val alto = abajo - arriba
         
-        // Posición del centro facial normalizada
-        caracteristicas.add(marcoRostro.centerX().toFloat() / 1000f)
-        caracteristicas.add(marcoRostro.centerY().toFloat() / 1000f)
-        
-        // Puntos clave faciales más confiables para identificación
-        val puntosClaveConfiables = listOf(
-            FaceLandmark.LEFT_EYE,
-            FaceLandmark.RIGHT_EYE,
-            FaceLandmark.NOSE_BASE
-        )
-        
-        puntosClaveConfiables.forEach { tipoPunto ->
-            rostroDetectado.getLandmark(tipoPunto)?.let { punto ->
-                // Posición relativa del punto dentro del marco facial (0.0 a 1.0)
-                val posicionX = (punto.position.x - marcoRostro.left) / marcoRostro.width().toFloat()
-                val posicionY = (punto.position.y - marcoRostro.top) / marcoRostro.height().toFloat()
-                caracteristicas.add(posicionX)
-                caracteristicas.add(posicionY)
-            } ?: run {
-                // Valor por defecto si no se detecta el punto (centro del rostro)
-                caracteristicas.add(0.5f)
-                caracteristicas.add(0.5f)
-            }
-        }
-        
-        // Calcular distancias características entre puntos faciales clave
-        val ojoIzquierdo = rostroDetectado.getLandmark(FaceLandmark.LEFT_EYE)
-        val ojoDerecho = rostroDetectado.getLandmark(FaceLandmark.RIGHT_EYE)
-        val nariz = rostroDetectado.getLandmark(FaceLandmark.NOSE_BASE)
-        
-        if (ojoIzquierdo != null && ojoDerecho != null) {
-            // Distancia entre ojos - característica muy distintiva de cada persona
-            val distanciaEntreOjos = kotlin.math.sqrt(
-                (ojoIzquierdo.position.x - ojoDerecho.position.x).pow(2) +
-                (ojoIzquierdo.position.y - ojoDerecho.position.y).pow(2)
-            ) / marcoRostro.width().toFloat()
-            caracteristicas.add(distanciaEntreOjos)
-        } else {
-            caracteristicas.add(0.3f) // Distancia promedio entre ojos
-        }
-        
-        if (ojoIzquierdo != null && nariz != null) {
-            // Distancia de ojo izquierdo a nariz - otra característica distintiva
-            val distanciaOjoNariz = kotlin.math.sqrt(
-                (ojoIzquierdo.position.x - nariz.position.x).pow(2) +
-                (ojoIzquierdo.position.y - nariz.position.y).pow(2)
-            ) / marcoRostro.width().toFloat()
-            caracteristicas.add(distanciaOjoNariz)
-        } else {
-            caracteristicas.add(0.25f) // Distancia promedio ojo-nariz
-        }
-        
-        // Convertir características a texto para almacenar en base de datos
-        return caracteristicas.joinToString(",")
+        return Bitmap.createBitmap(imagenCompleta, izquierda, arriba, ancho, alto)
     }
 
     /**
-     * Calcula la similitud entre dos conjuntos de características faciales
-     * Retorna un valor entre 0-1, donde 1 significa rostros idénticos
-     * Usa similitud coseno para mejor precisión en comparación facial
+     * Calcula la similitud entre dos embeddings faciales usando similitud coseno
+     * @param embedding1 Primer embedding como string
+     * @param embedding2 Segundo embedding como string
+     * @return Valor de similitud entre 0.0 y 1.0
      */
-    fun calcularSimilitud(caracteristicas1: String, caracteristicas2: String): Float {
+    fun calcularSimilitud(embedding1: String, embedding2: String): Float {
         return try {
-            val rasgos1 = caracteristicas1.split(",").map { it.toFloat() }
-            val rasgos2 = caracteristicas2.split(",").map { it.toFloat() }
+            val vector1 = generadorEmbeddings.stringAEmbedding(embedding1)
+            val vector2 = generadorEmbeddings.stringAEmbedding(embedding2)
             
-            if (rasgos1.size != rasgos2.size || rasgos1.isEmpty()) return 0f
-            
-            // Calcular similitud coseno para comparación facial precisa
-            val productoEscalar = rasgos1.zip(rasgos2) { rasgo1, rasgo2 -> rasgo1 * rasgo2 }.sum()
-            val magnitud1 = sqrt(rasgos1.map { it.pow(2) }.sum())
-            val magnitud2 = sqrt(rasgos2.map { it.pow(2) }.sum())
-            
-            if (magnitud1 == 0f || magnitud2 == 0f) return 0f
-            
-            val similitudCoseno = productoEscalar / (magnitud1 * magnitud2)
-            
-            // Normalizar de rango [-1, 1] a [0, 1] para porcentaje de similitud
-            val similitudNormalizada = (similitudCoseno + 1f) / 2f
-            
-            similitudNormalizada.coerceIn(0f, 1f)
+            if (vector1 != null && vector2 != null) {
+                generadorEmbeddings.calcularSimilitudCoseno(vector1, vector2)
+            } else {
+                0f
+            }
         } catch (e: Exception) {
+            android.util.Log.e("ReconocimientoFacial", "Error al calcular similitud", e)
             0f
         }
     }
 
     /**
-     * 🎯 AQUÍ PUEDES AJUSTAR LA PRECISIÓN DEL RECONOCIMIENTO:
-     * 
-     * umbralPrecision:
-     * - 0.3f = MUY PERMISIVO (reconoce casi cualquier rostro)
-     * - 0.5f = PERMISIVO (predeterminado anterior)
-     * - 0.7f = BALANCEADO (recomendado) ⭐
-     * - 0.8f = ESTRICTO (solo rostros muy similares)
-     * - 0.9f = MUY ESTRICTO (casi imposible de reconocer)
-     * 
-     * Si no reconoce nada: bajar el valor (ej: 0.6f)
-     * Si reconoce personas incorrectas: subir el valor (ej: 0.8f)
+     * Busca la persona más similar en la lista de personas registradas
+     * @param embeddingBuscar Embedding facial a comparar
+     * @param personasRegistradas Lista de personas en la base de datos
+     * @param umbralPrecision Umbral mínimo de similitud (0.7 por defecto)
+     * @return ResultadoBusqueda con la persona encontrada o no encontrada
      */
     fun buscarPersonaMasSimilar(
-        caracteristicasBuscadas: String,
-        personasRegistradas: List<Pair<com.example.listaimagenes.domain.model.Persona, String>>,
-        umbralPrecision: Float = 0.7f // 🔧 AJUSTA AQUÍ LA PRECISIÓN
+        embeddingBuscar: String,
+        personasRegistradas: List<Persona>,
+        umbralPrecision: Float = 0.75f // Aumentado para embeddings reales más precisos
     ): ResultadoBusqueda {
         if (personasRegistradas.isEmpty()) {
-            return ResultadoBusqueda.NoEncontrado("No hay personas registradas")
+            return ResultadoBusqueda.PersonaNoEncontrada("No hay personas registradas")
         }
-        
-        var mejorCoincidencia: com.example.listaimagenes.domain.model.Persona? = null
-        var mayorSimilitud = 0f
-        
-        personasRegistradas.forEach { (persona, caracteristicasAlmacenadas) ->
-            val porcentajeSimilitud = calcularSimilitud(caracteristicasBuscadas, caracteristicasAlmacenadas)
-            if (porcentajeSimilitud > mayorSimilitud) {
-                mayorSimilitud = porcentajeSimilitud
-                mejorCoincidencia = persona
+
+        var mejorCoincidencia: Persona? = null
+        var mejorSimilitud = 0f
+
+        personasRegistradas.forEach { persona ->
+            persona.embeddingFacial?.let { embeddingPersona ->
+                val similitud = calcularSimilitud(embeddingBuscar, embeddingPersona)
+                if (similitud > mejorSimilitud) {
+                    mejorSimilitud = similitud
+                    mejorCoincidencia = persona
+                }
             }
         }
-        
-        return if (mayorSimilitud >= umbralPrecision && mejorCoincidencia != null) {
-            ResultadoBusqueda.Encontrado(mejorCoincidencia!!, mayorSimilitud)
+
+        return if (mejorCoincidencia != null && mejorSimilitud >= umbralPrecision) {
+            ResultadoBusqueda.PersonaEncontrada(mejorCoincidencia, mejorSimilitud)
         } else {
-            ResultadoBusqueda.NoEncontrado("No se encontró una coincidencia suficiente (similitud: ${String.format("%.2f", mayorSimilitud)})")
+            val razon = if (mejorSimilitud > 0) {
+                "Similitud insuficiente: ${String.format("%.2f", mejorSimilitud)} < $umbralPrecision"
+            } else {
+                "No se encontraron rostros similares"
+            }
+            ResultadoBusqueda.PersonaNoEncontrada(razon)
         }
+    }
+    
+    /**
+     * Libera recursos del modelo TensorFlow Lite
+     */
+    fun liberarRecursos() {
+        generadorEmbeddings.liberarRecursos()
     }
 }
 
 /**
- * Resultado de la detección de rostro
+ * Resultado de la detección de rostro con embedding
  */
 sealed class ResultadoDeteccion {
     data class Exito(val face: Face, val embedding: String) : ResultadoDeteccion()
@@ -202,9 +168,10 @@ sealed class ResultadoDeteccion {
 }
 
 /**
- * Resultado de la búsqueda de persona
+ * Resultado de la búsqueda de persona usando embeddings
  */
 sealed class ResultadoBusqueda {
-    data class Encontrado(val persona: com.example.listaimagenes.domain.model.Persona, val similitud: Float) : ResultadoBusqueda()
-    data class NoEncontrado(val razon: String) : ResultadoBusqueda()
+    data class PersonaEncontrada(val persona: Persona, val similitud: Float) : ResultadoBusqueda()
+    data class PersonaNoEncontrada(val razon: String) : ResultadoBusqueda()
+    data class Error(val mensaje: String) : ResultadoBusqueda()
 }

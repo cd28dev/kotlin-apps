@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.graphics.BitmapFactory
 import com.example.listaimagenes.domain.model.Persona
 import com.example.listaimagenes.data.IPersonaRepository
+import com.example.listaimagenes.domain.utils.UtilidadesImagen
 import java.io.File
 
 sealed class Resultado {
@@ -13,26 +14,30 @@ sealed class Resultado {
 
 class CasoUsoPersona(
     private val repo: IPersonaRepository,
-    private val context : ContentResolver
+    private val context : ContentResolver,
+    private val contextoApp: android.content.Context
 ) {
-    private val reconocimientoFacial = ReconocimientoFacial()
+    private val reconocimientoFacial = ReconocimientoFacial(contextoApp)
 
-    suspend fun crear(persona : Persona):Resultado{
-        validar(persona);
+    suspend fun crear(persona: Persona): Resultado {
+        validar(persona)
         val personas = repo.listar()
-        if (personas.any { it.dni.trim() == persona.dni.trim() }){
+        if (personas.any { it.dni.trim() == persona.dni.trim() }) {
             return Resultado.Error("Ya existe una persona con ese DNI")
         }
 
-        // Generar embedding facial si hay foto
-        var faceEmbedding: String? = null
-        persona.foto?.let { fotoPath ->
+        // Generar embedding facial si hay imagen
+        var embeddingFacial: String? = null
+        var imagenFacialBytes: ByteArray? = null
+        
+        persona.imagenFacial?.let { bytesImagen ->
             try {
-                val bitmap = BitmapFactory.decodeFile(fotoPath)
+                val bitmap = UtilidadesImagen.byteArrayABitmap(bytesImagen)
                 if (bitmap != null) {
+                    imagenFacialBytes = bytesImagen // Ya está en ByteArray
                     when (val resultado = reconocimientoFacial.detectarYExtraerCaracteristicas(bitmap)) {
                         is ResultadoDeteccion.Exito -> {
-                            faceEmbedding = resultado.embedding
+                            embeddingFacial = resultado.embedding
                         }
                         is ResultadoDeteccion.SinRostro -> {
                             return Resultado.Error("No se detectó ningún rostro en la imagen")
@@ -54,10 +59,11 @@ class CasoUsoPersona(
             dni = persona.dni.trim(),
             nombre = persona.nombre.trim(),
             apellido = persona.apellido.trim(),
-            foto = persona.foto?.trim(),
             correo = persona.correo.trim(),
-            faceEmbedding = faceEmbedding
+            imagenFacial = imagenFacialBytes,
+            embeddingFacial = embeddingFacial
         )
+        
         return if (repo.crear(nuevaPersona)) {
             Resultado.Exito
         } else {
@@ -65,37 +71,21 @@ class CasoUsoPersona(
         }
     }
 
-    suspend fun actualizar(persona:Persona):Resultado{
-        return if (repo.actualizar(persona) >0){
+    suspend fun actualizar(persona: Persona): Resultado {
+        return if (repo.actualizar(persona) > 0) {
             Resultado.Exito
-        }else{
+        } else {
             Resultado.Error("Error al actualizar")
         }
     }
-    suspend fun listar():List<Persona> {
-        val personas = repo.listar()
-        return personas
+    
+    suspend fun listar(): List<Persona> {
+        return repo.listar()
     }
 
     suspend fun eliminar(persona: Persona): Int {
-        val eliminado : Int = repo.eliminar(persona)
-
-        if (eliminado==1 && persona?.foto != null) {
-            try {
-                val file = File(persona.foto)
-                if (file.exists()) {
-                    val fotoEliminada = file.delete()
-                    println("Foto eliminada: $fotoEliminada - Ruta: ${persona.foto}")
-                } else {
-                    println("El archivo no existe: ${persona.foto}")
-                }
-            } catch (e: Exception) {
-                println("Error al eliminar la foto: ${e.message}")
-                e.printStackTrace()
-            }
-        }
-
-        return eliminado
+        // Con ByteArray no necesitamos eliminar archivos físicos
+        return repo.eliminar(persona)
     }
 
     suspend fun reconocerPersona(fotoPath: String): ResultadoReconocimiento {
@@ -108,92 +98,61 @@ class CasoUsoPersona(
             // Detectar rostro y generar embedding
             when (val resultado = reconocimientoFacial.detectarYExtraerCaracteristicas(bitmap)) {
                 is ResultadoDeteccion.Exito -> {
-                    // Obtener todas las personas con embeddings
+                    val embeddingBuscar = resultado.embedding
                     val personas = repo.listar()
-                    val personasConEmbedding = personas.mapNotNull { persona ->
-                        persona.faceEmbedding?.let { embedding ->
-                            Pair(persona, embedding)
-                        }
-                    }
-
-                    // Buscar coincidencia
-                    when (val busqueda = reconocimientoFacial.buscarPersonaMasSimilar(
-                        resultado.embedding, 
-                        personasConEmbedding
-                    )) {
-                        is ResultadoBusqueda.Encontrado -> {
+                    
+                    // Buscar persona más similar
+                    when (val busqueda = reconocimientoFacial.buscarPersonaMasSimilar(embeddingBuscar, personas)) {
+                        is ResultadoBusqueda.PersonaEncontrada -> {
                             ResultadoReconocimiento.PersonaEncontrada(busqueda.persona, busqueda.similitud)
                         }
-                        is ResultadoBusqueda.NoEncontrado -> {
+                        is ResultadoBusqueda.PersonaNoEncontrada -> {
                             ResultadoReconocimiento.PersonaNoEncontrada(busqueda.razon)
+                        }
+                        is ResultadoBusqueda.Error -> {
+                            ResultadoReconocimiento.Error(busqueda.mensaje)
                         }
                     }
                 }
                 is ResultadoDeteccion.SinRostro -> {
-                    ResultadoReconocimiento.Error("No se detectó ningún rostro en la imagen")
+                    ResultadoReconocimiento.PersonaNoEncontrada("No se detectó ningún rostro en la imagen")
                 }
                 is ResultadoDeteccion.MultiplesRostros -> {
                     ResultadoReconocimiento.Error("Se detectaron múltiples rostros. Use una imagen con un solo rostro")
                 }
                 is ResultadoDeteccion.Error -> {
-                    ResultadoReconocimiento.Error("Error al procesar el rostro: ${resultado.mensaje}")
+                    ResultadoReconocimiento.Error("Error al procesar imagen: ${resultado.mensaje}")
                 }
             }
         } catch (e: Exception) {
-            ResultadoReconocimiento.Error("Error durante el reconocimiento: ${e.message}")
+            ResultadoReconocimiento.Error("Error en reconocimiento: ${e.message}")
         }
     }
 
     suspend fun limpiarTodas(): Boolean {
         return try {
-            val personas = repo.listar()
-
+            // Con ByteArray solo necesitamos limpiar la base de datos
             repo.limpiarTodas()
-
-            personas.forEach { persona ->
-                persona.foto?.let { fotoPath ->
-                    try {
-                        val file = File(fotoPath)
-                        if (file.exists()) {
-                            val eliminada = file.delete()
-                            println("Foto eliminada: $eliminada - Ruta: $fotoPath")
-                        }
-                    } catch (e: Exception) {
-                        println("Error al eliminar la foto: ${e.message}")
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-            true
         } catch (e: Exception) {
-            e.printStackTrace()
             false
         }
     }
 
-    private fun validar(persona : Persona) : Resultado{
-        val dniLimpio = persona.dni.trim()
-
-        if (persona.nombre.isBlank()) {
-            return Resultado.Error("El nombre es obligatorio")
+    private fun validar(persona: Persona): Resultado {
+        when {
+            persona.nombre.isBlank() -> return Resultado.Error("El nombre es requerido")
+            persona.apellido.isBlank() -> return Resultado.Error("El apellido es requerido")
+            persona.dni.isBlank() -> return Resultado.Error("El DNI es requerido")
+            persona.correo.isBlank() -> return Resultado.Error("El correo es requerido")
+            
+            persona.dni.trim().length != 8 -> return Resultado.Error("El DNI debe tener exactamente 8 dígitos")
+            !persona.dni.trim().all { it.isDigit() } -> return Resultado.Error("El DNI solo puede contener números")
+            
+            !persona.correo.trim().contains("@") -> return Resultado.Error("El correo debe tener un formato válido")
+            
+            persona.nombre.trim().length < 2 -> return Resultado.Error("El nombre debe tener al menos 2 caracteres")
+            persona.apellido.trim().length < 2 -> return Resultado.Error("El apellido debe tener al menos 2 caracteres")
         }
-        if(persona.correo.isBlank()){
-            return Resultado.Error("El correo es obligatorio")
-        }
-        if (persona.apellido.isBlank()) {
-            return Resultado.Error("El apellido es obligatorio")
-        }
-        if (dniLimpio.isBlank()) {
-            return Resultado.Error("El DNI es obligatorio")
-        }
-        if (!dniLimpio.matches(Regex("\\d{8}"))){
-            return Resultado.Error("El DNI debe tener 8 dígitos")
-        }
-        if (persona.foto.isNullOrBlank()) {
-            return Resultado.Error("La foto es obligatoria")
-        }
-
         return Resultado.Exito
     }
 }
