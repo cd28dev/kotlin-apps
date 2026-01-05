@@ -104,7 +104,7 @@ fun AppVozScreen(
                 },
                 actions = {
                     if (uiState.transcript.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.updateTranscript("") }) {
+                        IconButton(onClick = { viewModel.clearAll() }) {
                             Icon(Icons.Default.Delete, "Limpiar", tint = Color(0xFFE57373))
                         }
                     }
@@ -390,36 +390,36 @@ private fun TranslationBubble(translation: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp),
-        shape = RoundedCornerShape(20.dp),
-        color = Color(0xFF81C784).copy(alpha = 0.2f),
-        shadowElevation = 4.dp
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF81C784).copy(alpha = 0.15f),
+        shadowElevation = 2.dp
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(12.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
                     tint = Color(0xFF388E3C),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Text(
                     "Traducción:",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF388E3C),
-                    fontSize = 14.sp
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF2E7D32),
+                    fontSize = 12.sp
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = translation,
-                fontSize = 16.sp,
-                color = Color(0xFF2E7D32),
-                lineHeight = 22.sp
+                fontSize = 15.sp,
+                color = Color(0xFF1B5E20),
+                lineHeight = 20.sp
             )
         }
     }

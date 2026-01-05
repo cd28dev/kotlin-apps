@@ -69,6 +69,17 @@ class AppVozViewModel(application: Application) : AndroidViewModel(application) 
     fun updateTranscript(text: String) {
         _uiState.update { it.copy(transcript = text) }
     }
+    
+    fun clearAll() {
+        _uiState.update { 
+            it.copy(
+                transcript = "",
+                translatedText = "",
+                detectedLanguage = "",
+                statusMessage = "Listo para dictar"
+            )
+        }
+    }
 
     fun identifyLanguage() {
         val text = _uiState.value.transcript
