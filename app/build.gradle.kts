@@ -40,6 +40,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -93,6 +94,19 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    // Gson for manual JSON parsing
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Google Maps & Location
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
+
+    // ML Kit & Icons (AppVoz)
+    implementation("com.google.mlkit:language-id:17.0.4")
+    implementation("com.google.mlkit:translate:17.0.1")
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
 
     // Debug
     debugImplementation(libs.androidx.ui.tooling)
