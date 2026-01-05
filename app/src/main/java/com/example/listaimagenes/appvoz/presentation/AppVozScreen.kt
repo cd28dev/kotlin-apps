@@ -488,7 +488,7 @@ private fun ActionChip(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(64.dp),
+        modifier = modifier.height(68.dp),
         enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
@@ -501,7 +501,7 @@ private fun ActionChip(
             defaultElevation = if (enabled) 6.dp else 0.dp,
             pressedElevation = 2.dp
         ),
-        contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp)
+        contentPadding = PaddingValues(vertical = 10.dp, horizontal = 8.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -511,9 +511,9 @@ private fun ActionChip(
             Icon(
                 icon,
                 contentDescription = label,
-                modifier = Modifier.size(26.dp)
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 label,
                 fontSize = 11.sp,
