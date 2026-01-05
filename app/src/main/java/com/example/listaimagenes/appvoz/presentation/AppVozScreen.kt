@@ -501,25 +501,26 @@ private fun ActionChip(
             defaultElevation = if (enabled) 6.dp else 0.dp,
             pressedElevation = 2.dp
         ),
-        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
+        contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
                 icon,
                 contentDescription = label,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(26.dp)
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 label,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
-                color = Color.White
+                color = Color.White,
+                textAlign = TextAlign.Center
             )
         }
     }
