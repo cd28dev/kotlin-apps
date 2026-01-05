@@ -389,37 +389,49 @@ private fun TranslationBubble(translation: String) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF81C784).copy(alpha = 0.15f),
-        shadowElevation = 2.dp
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White,
+        shadowElevation = 3.dp
     ) {
         Column(
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFFE3F2FD),
+                            Color(0xFFF3E5F5)
+                        )
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(16.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color(0xFF388E3C),
-                    modifier = Modifier.size(16.dp)
+                    tint = Color(0xFF1976D2),
+                    modifier = Modifier.size(20.dp)
                 )
                 Text(
-                    "Traducción:",
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF2E7D32),
-                    fontSize = 12.sp
+                    "Traducción al Español:",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1565C0),
+                    fontSize = 13.sp
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = translation,
-                fontSize = 15.sp,
-                color = Color(0xFF1B5E20),
-                lineHeight = 20.sp
+                fontSize = 16.sp,
+                color = Color(0xFF212121),
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.Medium
             )
         }
     }
