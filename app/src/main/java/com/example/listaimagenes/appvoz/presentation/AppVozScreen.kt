@@ -170,10 +170,16 @@ fun AppVozScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 // SECCIÓN 2: Zona de Texto (estilo bloc de notas)
-                TextNoteSection(
-                    transcript = uiState.transcript,
-                    onTextChange = { viewModel.updateTranscript(it) }
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    TextNoteSection(
+                        transcript = uiState.transcript,
+                        onTextChange = { viewModel.updateTranscript(it) }
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
@@ -185,7 +191,7 @@ fun AppVozScreen(
                     TranslationBubble(uiState.translatedText)
                 }
                 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 // SECCIÓN 3: Acciones horizontales con scroll
                 ActionsRow(
@@ -349,9 +355,7 @@ private fun TextNoteSection(
     onTextChange: (String) -> Unit
 ) {
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 180.dp, max = 300.dp),
+        modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(20.dp),
         color = Color.White.copy(alpha = 0.9f),
         shadowElevation = 8.dp
