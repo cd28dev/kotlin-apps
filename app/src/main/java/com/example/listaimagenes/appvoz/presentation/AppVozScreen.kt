@@ -58,7 +58,32 @@ fun AppVozScreen(
         }
     }
 
+
+
     val context = LocalContext.current
+    
+    // Efecto para Compartir PDF (Safe Activity Launch)
+    LaunchedEffect(uiState.pdfFileToShare) {
+        uiState.pdfFileToShare?.let { file ->
+            try {
+                val authority = "${context.packageName}.fileprovider"
+                val uri = androidx.core.content.FileProvider.getUriForFile(context, authority, file)
+                
+                val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "application/pdf"
+                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir PDF"))
+                android.widget.Toast.makeText(context, "PDF Listo para compartir", android.widget.Toast.LENGTH_SHORT).show()
+                
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(context, "Error lanzando compartir: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
+            viewModel.consumePdfShare()
+        }
+    }
+
     // Efecto para lanzar el intent cuando el ViewModel lo pida
     LaunchedEffect(uiState.requestVoiceIntent) {
         if (uiState.requestVoiceIntent) {
@@ -124,6 +149,37 @@ fun AppVozScreen(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
+                    // Header de la tarjeta con el idioma
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Transcripción",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        if (uiState.detectedLanguage.isNotEmpty()) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.padding(start = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Idioma: ${uiState.detectedLanguage}",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     if (uiState.transcript.isEmpty() && !uiState.isListening) {
                         Text(
                             text = "Presiona el micrófono o escribe abajo...",
