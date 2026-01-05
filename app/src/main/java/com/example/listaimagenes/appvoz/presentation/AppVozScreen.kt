@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.PictureAsPdf
@@ -34,9 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppVozScreen(
-    viewModel: AppVozViewModel = viewModel()
+    viewModel: AppVozViewModel = viewModel(),
+    onBack: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -102,6 +105,23 @@ fun AppVozScreen(
     }
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Voz a Texto") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        },
         floatingActionButton = {
             MicFloatingActionButton(
                 isListening = uiState.isListening,
@@ -123,20 +143,15 @@ fun AppVozScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
-            Text(
-                text = "Voz a Texto Pro",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+            // Status message
             Text(
                 text = uiState.statusMessage,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Transcript Card & Manual Input
             Card(
@@ -263,7 +278,8 @@ fun AppVozScreen(
                 )
             }
             
-            Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
+            // Espacio para el FAB centrado
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

@@ -80,11 +80,16 @@ class MainActivity : ComponentActivity() {
 fun AppPrincipal() {
     var pantallaActual by remember { mutableStateOf("menu") }
     val viewModel: PersonaViewModel = viewModel()
+    
+    // Manejar el botón de atrás del dispositivo
+    androidx.activity.compose.BackHandler(enabled = pantallaActual != "menu") {
+        pantallaActual = "menu"
+    }
 
     Scaffold(
         bottomBar = {
-            // Solo mostrar barra de navegación si no estamos en el menú
-            if (pantallaActual != "menu") {
+            // Solo mostrar barra de navegación en las pantallas de reconocimiento facial
+            if (pantallaActual.startsWith("reconocimiento_")) {
                 BottomNavigationBar(
                     pantallaActual = pantallaActual,
                     onNavegacionCambiada = { nuevaPantalla -> pantallaActual = nuevaPantalla },
@@ -121,7 +126,9 @@ fun AppPrincipal() {
                 
                 
                 // App 3: AppVoz
-                "appvoz" -> com.example.listaimagenes.appvoz.presentation.AppVozScreen()
+                "appvoz" -> com.example.listaimagenes.appvoz.presentation.AppVozScreen(
+                    onBack = { pantallaActual = "menu" }
+                )
             }
         }
     }
