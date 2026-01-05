@@ -59,11 +59,7 @@ class PdfGenerator(private val context: Context) {
                 var footerY = (pageHeight - 50).toFloat()
                 canvas.drawText("UNIVERSIDAD NACIONAL DE PIURA", footerX, footerY, footerPaint)
                 footerY += footerPaint.textSize + 4f
-                canvas.drawText("2025-ALBURQUEQUE ANTON SEGIO", footerX, footerY, footerPaint)
-                footerY += footerPaint.textSize + 4f
-                canvas.drawText("ARANDA ZAPATA MADELEY", footerX, footerY, footerPaint)
-                footerY += footerPaint.textSize + 4f
-                canvas.drawText("MORAN PALACIOS NICK", footerX, footerY, footerPaint)
+                canvas.drawText("© 2025 - Adrianzen, Huanca, Pasache", footerX, footerY, footerPaint)
 
                 document.finishPage(p)
             }

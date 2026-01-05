@@ -369,13 +369,16 @@ private fun TextNoteSection(
             },
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 16.sp,
-                lineHeight = 24.sp
+                lineHeight = 24.sp,
+                color = Color.Black
             ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
+                unfocusedBorderColor = Color.Transparent,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
             )
         )
     }
@@ -471,13 +474,22 @@ private fun ActionChip(
     enabled: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    Button(
         onClick = onClick,
-        modifier = modifier.height(56.dp),
+        modifier = modifier.height(64.dp),
         enabled = enabled,
         shape = RoundedCornerShape(16.dp),
-        color = if (enabled) color.copy(alpha = 0.15f) else Color.Gray.copy(alpha = 0.1f),
-        shadowElevation = if (enabled) 4.dp else 0.dp
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (enabled) color else Color.Gray.copy(alpha = 0.3f),
+            contentColor = Color.White,
+            disabledContainerColor = Color.Gray.copy(alpha = 0.2f),
+            disabledContentColor = Color.Gray
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = if (enabled) 6.dp else 0.dp,
+            pressedElevation = 2.dp
+        ),
+        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -487,15 +499,15 @@ private fun ActionChip(
             Icon(
                 icon,
                 contentDescription = label,
-                tint = if (enabled) color else Color.Gray,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = if (enabled) color else Color.Gray
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                color = Color.White
             )
         }
     }
