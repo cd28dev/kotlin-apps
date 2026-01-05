@@ -28,6 +28,15 @@ fun MenuPrincipalScreen(
     onNavigateToElTiempo: () -> Unit,
     onNavigateToAppVoz: () -> Unit
 ) {
+    var horaActual by remember { mutableStateOf(obtenerHoraActual()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(1000)
+            horaActual = obtenerHoraActual()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,66 +50,117 @@ fun MenuPrincipalScreen(
             )
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Título principal
-        Text(
-            text = "Multi-App Android",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp
-            ),
-            color = ColoresApp.Primario,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Text(
-            text = "Selecciona una aplicación",
-            style = MaterialTheme.typography.bodyLarge,
-            color = ColoresApp.TextoSecundario,
-            textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        // Cards de las apps
+        // Encabezado Universidad
         Column(
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
         ) {
-            AppCard(
-                title = "Reconocimiento Facial",
-                description = "Sistema de identificación con ML Kit",
-                icon = Icons.Default.Face,
-                gradient = listOf(
-                    Color(0xFF667EEA),
-                    Color(0xFF764BA2)
+            Text(
+                text = "UNIVERSIDAD NACIONAL DE PIURA",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    letterSpacing = 0.5.sp
                 ),
-                onClick = onNavigateToReconocimiento
+                color = ColoresApp.Primario,
+                textAlign = TextAlign.Center
             )
             
-            AppCard(
-                title = "El Tiempo",
-                description = "Pronóstico del clima en tiempo real",
-                icon = Icons.Default.Info,
-                gradient = listOf(
-                    Color(0xFF56CCF2),
-                    Color(0xFF2F80ED)
+            Divider(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .width(100.dp),
+                thickness = 2.dp,
+                color = ColoresApp.Primario
+            )
+        }
+
+        // Contenido principal
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            // Título principal
+            Text(
+                text = "Multi-App Android",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 32.sp
                 ),
-                onClick = onNavigateToElTiempo
+                color = ColoresApp.Primario,
+                textAlign = TextAlign.Center
             )
             
-            AppCard(
-                title = "AppVoz",
-                description = "Reconocimiento de voz y traducción",
-                icon = Icons.Default.Person,
-                gradient = listOf(
-                    Color(0xFFF093FB),
-                    Color(0xFFF5576C)
-                ),
-                onClick = onNavigateToAppVoz
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Selecciona una aplicación",
+                style = MaterialTheme.typography.bodyLarge,
+                color = ColoresApp.TextoSecundario,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            // Cards de las apps
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AppCard(
+                    title = "Reconocimiento Facial",
+                    description = "Sistema de identificación con ML Kit",
+                    icon = Icons.Default.Face,
+                    gradient = listOf(
+                        Color(0xFF667EEA),
+                        Color(0xFF764BA2)
+                    ),
+                    onClick = onNavigateToReconocimiento
+                )
+                
+                AppCard(
+                    title = "El Tiempo",
+                    description = "Pronóstico del clima en tiempo real",
+                    icon = Icons.Default.Info,
+                    gradient = listOf(
+                        Color(0xFF56CCF2),
+                        Color(0xFF2F80ED)
+                    ),
+                    onClick = onNavigateToElTiempo
+                )
+                
+                AppCard(
+                    title = "AppVoz",
+                    description = "Reconocimiento de voz y traducción",
+                    icon = Icons.Default.Person,
+                    gradient = listOf(
+                        Color(0xFFF093FB),
+                        Color(0xFFF5576C)
+                    ),
+                    onClick = onNavigateToAppVoz
+                )
+            }
+        }
+
+        // Footer con autores
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "© 2025 - Adrianzen, Huanca, Pasache",
+                style = MaterialTheme.typography.labelMedium,
+                color = ColoresApp.TextoSecundario,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = horaActual,
+                style = MaterialTheme.typography.labelSmall,
+                color = ColoresApp.TextoSecundario.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -188,4 +248,9 @@ private fun AppCard(
             isPressed = false
         }
     }
+}
+
+private fun obtenerHoraActual(): String {
+    val formato = java.text.SimpleDateFormat("hh:mm:ss a", java.util.Locale("es", "PE"))
+    return formato.format(java.util.Date())
 }
