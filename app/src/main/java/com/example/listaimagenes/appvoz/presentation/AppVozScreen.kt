@@ -3,30 +3,23 @@ package com.example.listaimagenes.appvoz.presentation
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +45,6 @@ fun AppVozScreen(
         }
     )
 
-    // Launcher para el Intent Fallback
     val voiceIntentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -61,44 +54,35 @@ fun AppVozScreen(
         }
     }
 
-
-
     val context = LocalContext.current
     
-    // Efecto para Compartir PDF (Safe Activity Launch)
     LaunchedEffect(uiState.pdfFileToShare) {
         uiState.pdfFileToShare?.let { file ->
             try {
                 val authority = "${context.packageName}.fileprovider"
                 val uri = androidx.core.content.FileProvider.getUriForFile(context, authority, file)
-                
                 val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                     type = "application/pdf"
                     putExtra(android.content.Intent.EXTRA_STREAM, uri)
                     addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir PDF"))
-                android.widget.Toast.makeText(context, "PDF Listo para compartir", android.widget.Toast.LENGTH_SHORT).show()
-                
             } catch (e: Exception) {
-                android.widget.Toast.makeText(context, "Error lanzando compartir: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
             }
             viewModel.consumePdfShare()
         }
     }
 
-    // Efecto para lanzar el intent cuando el ViewModel lo pida
     LaunchedEffect(uiState.requestVoiceIntent) {
         if (uiState.requestVoiceIntent) {
             val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                putExtra(android.speech.RecognizerIntent.EXTRA_PROMPT, "Habla ahora...")
             }
             try {
-                android.widget.Toast.makeText(context, "Intentando abrir dictado por voz...", android.widget.Toast.LENGTH_SHORT).show()
                 voiceIntentLauncher.launch(intent)
             } catch (e: Exception) {
-                android.widget.Toast.makeText(context, "Error: No hay app de voz instalada.", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, "Error de voz", android.widget.Toast.LENGTH_SHORT).show()
             }
             viewModel.consumeVoiceIntent()
         }
@@ -107,230 +91,413 @@ fun AppVozScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Voz a Texto") },
+                title = { 
+                    Text(
+                        "VoiceNote",
+                        fontWeight = FontWeight.Bold
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver"
-                        )
+                        Icon(Icons.Default.ArrowBack, "Volver")
+                    }
+                },
+                actions = {
+                    if (uiState.transcript.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.updateTranscript("") }) {
+                            Icon(Icons.Default.Delete, "Limpiar", tint = Color(0xFFE57373))
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = Color.Transparent
                 )
             )
-        },
-        floatingActionButton = {
-            MicFloatingActionButton(
-                isListening = uiState.isListening,
-                onClick = {
-                    if (uiState.isListening) {
-                        viewModel.stopListening()
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                    }
-                }
-            )
-        },
-        floatingActionButtonPosition = FabPosition.Center
+        }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Status message
-            Text(
-                text = uiState.statusMessage,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Transcript Card & Manual Input
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    // Header de la tarjeta con el idioma
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Transcripción",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFFF5F7FA),
+                            Color(0xFFE8EAF6),
+                            Color(0xFFC5CAE9)
                         )
-                        
-                        if (uiState.detectedLanguage.isNotEmpty()) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.tertiaryContainer,
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.padding(start = 8.dp)
-                            ) {
-                                Text(
-                                    text = "Idioma: ${uiState.detectedLanguage}",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
+                    )
+                )
+                .padding(paddingValues)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // SECCIÓN 1: Zona de Grabación
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                RecordingSection(
+                    isListening = uiState.isListening,
+                    onMicClick = {
+                        if (uiState.isListening) {
+                            viewModel.stopListening()
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                         }
                     }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (uiState.transcript.isEmpty() && !uiState.isListening) {
-                        Text(
-                            text = "Presiona el micrófono o escribe abajo...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
-                        )
-                    }
-                    
-                    OutlinedTextField(
-                        value = uiState.transcript,
-                        onValueChange = { viewModel.updateTranscript(it) },
-                        modifier = Modifier.fillMaxSize(),
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            disabledContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        placeholder = { Text("Escribe aquí si el dictado falla...") }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Translation Card (Animated)
-            AnimatedVisibility(
-                visible = uiState.translatedText.isNotEmpty(),
-                enter = slideInVertically() + fadeIn()
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 100.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                    shape = RoundedCornerShape(16.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Status con badge
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Traducción al Español",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = uiState.translatedText,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
-                        )
+                    StatusChip(uiState.statusMessage)
+                    
+                    if (uiState.transcript.isNotEmpty()) {
+                        WordCountChip(uiState.transcript.split(" ").size)
+                    }
+                    
+                    if (uiState.detectedLanguage.isNotEmpty()) {
+                        LanguageChip(uiState.detectedLanguage)
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // SECCIÓN 2: Zona de Texto (estilo bloc de notas)
+                TextNoteSection(
+                    transcript = uiState.transcript,
+                    onTextChange = { viewModel.updateTranscript(it) }
+                )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // Traducción (si existe)
+                AnimatedVisibility(
+                    visible = uiState.translatedText.isNotEmpty(),
+                    enter = slideInVertically() + fadeIn()
+                ) {
+                    TranslationBubble(uiState.translatedText)
+                }
+                
+                Spacer(modifier = Modifier.weight(1f))
+                
+                // SECCIÓN 3: Acciones horizontales con scroll
+                ActionsRow(
+                    onDetect = { viewModel.identifyLanguage() },
+                    onTranslate = { viewModel.translateToSpanish() },
+                    onSavePdf = { viewModel.savePdf() },
+                    hasText = uiState.transcript.isNotEmpty()
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Action Buttons Row
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ActionButton(
-                    text = "Detectar",
-                    icon = Icons.Default.Language,
-                    onClick = { viewModel.identifyLanguage() },
-                    modifier = Modifier.weight(1f)
-                )
-                ActionButton(
-                    text = "Traducir",
-                    icon = Icons.Default.Translate,
-                    onClick = { viewModel.translateToSpanish() },
-                    modifier = Modifier.weight(1f)
-                )
-                ActionButton(
-                    text = "PDF",
-                    icon = Icons.Default.PictureAsPdf,
-                    onClick = { viewModel.savePdf() },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            
-            // Espacio para el FAB centrado
-            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
 
 @Composable
-fun MicFloatingActionButton(isListening: Boolean, onClick: () -> Unit) {
+private fun RecordingSection(
+    isListening: Boolean,
+    onMicClick: () -> Unit
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = if (isListening) 1.2f else 1f,
+        targetValue = if (isListening) 1.15f else 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000),
+            animation = tween(800),
             repeatMode = RepeatMode.Reverse
         ),
         label = "scale"
     )
     
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isListening) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-        label = "color"
-    )
-
-    LargeFloatingActionButton(
-        onClick = onClick,
-        containerColor = backgroundColor,
-        contentColor = Color.White,
-        modifier = Modifier.scale(if (isListening) scale else 1f)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Default.Mic,
-            contentDescription = "Micrófono",
-            modifier = Modifier.size(36.dp)
+        Box(
+            modifier = Modifier
+                .size(140.dp)
+                .scale(scale)
+                .clip(CircleShape)
+                .background(
+                    if (isListening) {
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFFEF5350),
+                                Color(0xFFE53935),
+                                Color(0xFFC62828)
+                            )
+                        )
+                    } else {
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF5C6BC0),
+                                Color(0xFF3F51B5),
+                                Color(0xFF303F9F)
+                            )
+                        )
+                    }
+                )
+                .border(
+                    width = if (isListening) 4.dp else 0.dp,
+                    color = Color.White.copy(alpha = 0.5f),
+                    shape = CircleShape
+                )
+                .clickable(onClick = onMicClick),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                contentDescription = if (isListening) "Detener" else "Grabar",
+                tint = Color.White,
+                modifier = Modifier.size(64.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = if (isListening) "Grabando..." else "Toca para grabar",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (isListening) Color(0xFFE53935) else Color(0xFF303F9F)
         )
     }
 }
 
 @Composable
-fun ActionButton(
-    text: String, 
-    icon: androidx.compose.ui.graphics.vector.ImageVector, 
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = modifier,
-        contentPadding = PaddingValues(8.dp)
+private fun StatusChip(status: String) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF7986CB).copy(alpha = 0.2f)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(24.dp))
-            Text(text = text, fontSize = 12.sp, maxLines = 1)
+        Text(
+            text = status,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            fontSize = 13.sp,
+            color = Color(0xFF303F9F),
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun WordCountChip(count: Int) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF81C784).copy(alpha = 0.2f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                Icons.Default.Info,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = Color(0xFF388E3C)
+            )
+            Text(
+                text = "$count palabras",
+                fontSize = 13.sp,
+                color = Color(0xFF388E3C),
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
+
+@Composable
+private fun LanguageChip(language: String) {
+    val color = if (language == "es") Color(0xFF66BB6A) else Color(0xFF42A5F5)
+    
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = color.copy(alpha = 0.2f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                Icons.Default.Language,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = color
+            )
+            Text(
+                text = language.uppercase(),
+                fontSize = 13.sp,
+                color = color,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun TextNoteSection(
+    transcript: String,
+    onTextChange: (String) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 180.dp, max = 300.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White.copy(alpha = 0.9f),
+        shadowElevation = 8.dp
+    ) {
+        OutlinedTextField(
+            value = transcript,
+            onValueChange = onTextChange,
+            modifier = Modifier.fillMaxSize(),
+            placeholder = { 
+                Text(
+                    "Tu transcripción aparecerá aquí...\nTambién puedes escribir directamente.",
+                    color = Color.Gray.copy(alpha = 0.5f),
+                    fontSize = 15.sp
+                ) 
+            },
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 16.sp,
+                lineHeight = 24.sp
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Color.Transparent
+            )
+        )
+    }
+}
+
+@Composable
+private fun TranslationBubble(translation: String) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF81C784).copy(alpha = 0.2f),
+        shadowElevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color(0xFF388E3C),
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    "Traducción:",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF388E3C),
+                    fontSize = 14.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = translation,
+                fontSize = 16.sp,
+                color = Color(0xFF2E7D32),
+                lineHeight = 22.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActionsRow(
+    onDetect: () -> Unit,
+    onTranslate: () -> Unit,
+    onSavePdf: () -> Unit,
+    hasText: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        ActionChip(
+            icon = Icons.Default.Language,
+            label = "Detectar",
+            color = Color(0xFF42A5F5),
+            onClick = onDetect,
+            enabled = hasText,
+            modifier = Modifier.weight(1f)
+        )
+        
+        ActionChip(
+            icon = Icons.Default.Translate,
+            label = "Traducir",
+            color = Color(0xFF66BB6A),
+            onClick = onTranslate,
+            enabled = hasText,
+            modifier = Modifier.weight(1f)
+        )
+        
+        ActionChip(
+            icon = Icons.Default.PictureAsPdf,
+            label = "PDF",
+            color = Color(0xFFFF7043),
+            onClick = onSavePdf,
+            enabled = hasText,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun ActionChip(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    color: Color,
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(56.dp),
+        enabled = enabled,
+        shape = RoundedCornerShape(16.dp),
+        color = if (enabled) color.copy(alpha = 0.15f) else Color.Gray.copy(alpha = 0.1f),
+        shadowElevation = if (enabled) 4.dp else 0.dp
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                icon,
+                contentDescription = label,
+                tint = if (enabled) color else Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (enabled) color else Color.Gray
+            )
+        }
+    }
+}
+
