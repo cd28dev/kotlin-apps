@@ -13,9 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/**
- * ViewModel para manejar el reconocimiento facial
- */
+
 class ReconocimientoViewModel : ViewModel() {
     
     private val casoUso = PersonaManager.casoUso
@@ -97,9 +95,6 @@ class ReconocimientoViewModel : ViewModel() {
     }
 }
 
-/**
- * Estado del reconocimiento facial
- */
 data class EstadoReconocimiento(
     val mostrarCamara: Boolean = false,
     val fotoTomada: String? = null,

@@ -5,7 +5,7 @@ data class EstadoPersona(
     val apellido: String = "",
     val dni: String = "",
     val correo: String = "",
-    val imagenFacial: ByteArray? = null, // Cambio de foto String a imagenFacial ByteArray
+    val imagenFacial: ByteArray? = null,
     val personas: List<Persona> = emptyList(),
     val mensaje: MensajeUI = MensajeUI.Ninguno,
     val personaSeleccionada: Persona? = null,
@@ -15,7 +15,6 @@ data class EstadoPersona(
     val esEdicion: Boolean = false,
     val procesandoRegistro: Boolean = false
 ) {
-    // Override equals y hashCode para manejar ByteArray correctamente
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

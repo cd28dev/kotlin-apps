@@ -11,10 +11,6 @@ import com.example.listaimagenes.reconocimiento.domain.ml.GeneradorEmbeddingsFac
 import com.example.listaimagenes.reconocimiento.domain.model.Persona
 import kotlinx.coroutines.tasks.await
 
-/**
- * Clase mejorada para reconocimiento facial usando ML Kit + TensorFlow Lite
- * Implementa embeddings reales según requisitos de la guía
- */
 class ReconocimientoFacial(private val contexto: Context) {
 
     private val detectorRostros = FaceDetection.getClient(
@@ -28,15 +24,9 @@ class ReconocimientoFacial(private val contexto: Context) {
     private val generadorEmbeddings = GeneradorEmbeddingsFaciales(contexto)
     
     init {
-        // Inicializar modelo TensorFlow Lite al crear la instancia
         generadorEmbeddings.inicializarModelo()
     }
 
-    /**
-     * Detecta rostros en imagen y genera embedding facial usando TensorFlow Lite
-     * @param imagenRostro Bitmap de la imagen completa
-     * @return ResultadoDeteccion con embedding facial o error
-     */
     suspend fun detectarYExtraerCaracteristicas(imagenRostro: Bitmap): ResultadoDeteccion {
         return try {
             val imagenProcesar = InputImage.fromBitmap(imagenRostro, 0)
@@ -63,14 +53,7 @@ class ReconocimientoFacial(private val contexto: Context) {
         }
     }
 
-    /**
-     * Recorta el rostro detectado de la imagen completa
-     * @param imagenCompleta Bitmap de la imagen original
-     * @param marcaRostro Rectángulo del rostro detectado por ML Kit
-     * @return Bitmap del rostro recortado
-     */
     private fun recortarRostroDeImagen(imagenCompleta: Bitmap, marcaRostro: Rect): Bitmap {
-        // Expandir el rectángulo ligeramente para capturar más contexto facial
         val expansion = 0.2f
         val anchoExpansion = (marcaRostro.width() * expansion).toInt()
         val altoExpansion = (marcaRostro.height() * expansion).toInt()
@@ -86,12 +69,6 @@ class ReconocimientoFacial(private val contexto: Context) {
         return Bitmap.createBitmap(imagenCompleta, izquierda, arriba, ancho, alto)
     }
 
-    /**
-     * Calcula la similitud entre dos embeddings faciales usando similitud coseno
-     * @param embedding1 Primer embedding como string
-     * @param embedding2 Segundo embedding como string
-     * @return Valor de similitud entre 0.0 y 1.0
-     */
     fun calcularSimilitud(embedding1: String, embedding2: String): Float {
         return try {
             val vector1 = generadorEmbeddings.stringAEmbedding(embedding1)
@@ -108,17 +85,10 @@ class ReconocimientoFacial(private val contexto: Context) {
         }
     }
 
-    /**
-     * Busca la persona más similar en la lista de personas registradas
-     * @param embeddingBuscar Embedding facial a comparar
-     * @param personasRegistradas Lista de personas en la base de datos
-     * @param umbralPrecision Umbral mínimo de similitud (0.7 por defecto)
-     * @return ResultadoBusqueda con la persona encontrada o no encontrada
-     */
     fun buscarPersonaMasSimilar(
         embeddingBuscar: String,
         personasRegistradas: List<Persona>,
-        umbralPrecision: Float = 0.75f // Aumentado para embeddings reales más precisos
+        umbralPrecision: Float = 0.75f
     ): ResultadoBusqueda {
         if (personasRegistradas.isEmpty()) {
             return ResultadoBusqueda.PersonaNoEncontrada("No hay personas registradas")
@@ -148,18 +118,12 @@ class ReconocimientoFacial(private val contexto: Context) {
             ResultadoBusqueda.PersonaNoEncontrada(razon)
         }
     }
-    
-    /**
-     * Libera recursos del modelo TensorFlow Lite
-     */
+
     fun liberarRecursos() {
         generadorEmbeddings.liberarRecursos()
     }
 }
 
-/**
- * Resultado de la detección de rostro con embedding
- */
 sealed class ResultadoDeteccion {
     data class Exito(val face: Face, val embedding: String) : ResultadoDeteccion()
     object SinRostro : ResultadoDeteccion()
@@ -167,9 +131,6 @@ sealed class ResultadoDeteccion {
     data class Error(val mensaje: String) : ResultadoDeteccion()
 }
 
-/**
- * Resultado de la búsqueda de persona usando embeddings
- */
 sealed class ResultadoBusqueda {
     data class PersonaEncontrada(val persona: Persona, val similitud: Float) : ResultadoBusqueda()
     data class PersonaNoEncontrada(val razon: String) : ResultadoBusqueda()

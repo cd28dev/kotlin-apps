@@ -26,7 +26,6 @@ class CasoUsoPersona(
             return Resultado.Error("Ya existe una persona con ese DNI")
         }
 
-        // Generar embedding facial si hay imagen
         var embeddingFacial: String? = null
         var imagenFacialBytes: ByteArray? = null
         
@@ -34,7 +33,7 @@ class CasoUsoPersona(
             try {
                 val bitmap = UtilidadesImagen.byteArrayABitmap(bytesImagen)
                 if (bitmap != null) {
-                    imagenFacialBytes = bytesImagen // Ya está en ByteArray
+                    imagenFacialBytes = bytesImagen
                     when (val resultado = reconocimientoFacial.detectarYExtraerCaracteristicas(bitmap)) {
                         is ResultadoDeteccion.Exito -> {
                             embeddingFacial = resultado.embedding
@@ -84,7 +83,6 @@ class CasoUsoPersona(
     }
 
     suspend fun eliminar(persona: Persona): Int {
-        // Con ByteArray no necesitamos eliminar archivos físicos
         return repo.eliminar(persona)
     }
 
@@ -95,13 +93,11 @@ class CasoUsoPersona(
                 return ResultadoReconocimiento.Error("No se pudo cargar la imagen")
             }
 
-            // Detectar rostro y generar embedding
             when (val resultado = reconocimientoFacial.detectarYExtraerCaracteristicas(bitmap)) {
                 is ResultadoDeteccion.Exito -> {
                     val embeddingBuscar = resultado.embedding
                     val personas = repo.listar()
                     
-                    // Buscar persona más similar
                     when (val busqueda = reconocimientoFacial.buscarPersonaMasSimilar(embeddingBuscar, personas)) {
                         is ResultadoBusqueda.PersonaEncontrada -> {
                             ResultadoReconocimiento.PersonaEncontrada(busqueda.persona, busqueda.similitud)
@@ -131,7 +127,6 @@ class CasoUsoPersona(
 
     suspend fun limpiarTodas(): Boolean {
         return try {
-            // Con ByteArray solo necesitamos limpiar la base de datos
             repo.limpiarTodas()
         } catch (e: Exception) {
             false
@@ -157,9 +152,6 @@ class CasoUsoPersona(
     }
 }
 
-/**
- * Resultado del reconocimiento de persona
- */
 sealed class ResultadoReconocimiento {
     data class PersonaEncontrada(val persona: Persona, val similitud: Float) : ResultadoReconocimiento()
     data class PersonaNoEncontrada(val razon: String) : ResultadoReconocimiento()

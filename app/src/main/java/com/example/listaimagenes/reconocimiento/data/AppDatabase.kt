@@ -15,11 +15,8 @@ abstract class AppDatabase : RoomDatabase() {
     
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
-
-        // Migración de versión 2 a 3: foto String -> imagenFacial ByteArray
         val MIGRACION_2_3 = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Crear tabla temporal con nueva estructura
                 database.execSQL("""
                     CREATE TABLE personas_nueva (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -31,14 +28,11 @@ abstract class AppDatabase : RoomDatabase() {
                         embeddingFacial TEXT
                     )
                 """)
-                
-                // Copiar datos existentes (sin la imagen, ya que cambió formato)
                 database.execSQL("""
                     INSERT INTO personas_nueva (id, dni, nombre, apellido, correo, embeddingFacial)
                     SELECT id, dni, nombre, apellido, correo, faceEmbedding FROM personas
                 """)
                 
-                // Eliminar tabla antigua y renombrar
                 database.execSQL("DROP TABLE personas")
                 database.execSQL("ALTER TABLE personas_nueva RENAME TO personas")
             }

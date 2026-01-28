@@ -34,7 +34,6 @@ import java.io.File
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PantallaReconocimiento(
-    // onVolverMenu: () -> Unit, - Eliminado porque el navbar maneja la navegación
     reconocimientoViewModel: ReconocimientoViewModel = viewModel()
 ) {
     val contexto = LocalContext.current
@@ -70,7 +69,6 @@ fun PantallaReconocimiento(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 
-                // Título y descripción
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -107,8 +105,6 @@ fun PantallaReconocimiento(
                         )
                     }
                 }
-
-                // Botón para capturar foto
                 Button(
                     onClick = { reconocimientoViewModel.mostrarCamara() },
                     modifier = Modifier
@@ -131,7 +127,6 @@ fun PantallaReconocimiento(
                     )
                 }
 
-                // Mostrar resultado del reconocimiento
                 estado.fotoTomada?.let { fotoPath ->
                     ResultadoReconocimiento(
                         fotoPath = fotoPath,
@@ -142,7 +137,6 @@ fun PantallaReconocimiento(
                     )
                 }
 
-                // Mostrar loading durante procesamiento
                 if (estado.procesandoReconocimiento) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -169,7 +163,6 @@ fun PantallaReconocimiento(
                     }
                 }
 
-                // Botón para nuevo reconocimiento (el navbar maneja la navegación)
                 if (estado.fotoTomada != null) {
                     Button(
                         onClick = { reconocimientoViewModel.reiniciarReconocimiento() },
@@ -203,7 +196,6 @@ fun ResultadoReconocimiento(
             modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Mostrar la foto capturada
             AsyncImage(
                 model = File(fotoPath),
                 contentDescription = "Foto capturada",
@@ -215,10 +207,8 @@ fun ResultadoReconocimiento(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Mostrar resultado
             when {
                 estado.personaReconocida != null -> {
-                    // Persona encontrada
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Persona encontrada",
@@ -264,7 +254,6 @@ fun ResultadoReconocimiento(
                     }
                 }
                 estado.mensajeError != null -> {
-                    // Error o no encontrado
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "No encontrado",

@@ -39,7 +39,6 @@ fun BotonesFormularioPersona(
     onVerPersonas: () -> Unit,
     onCancelar: () -> Unit
 ) {
-    // 🔍 DEBUG: Log para verificar estado de botones
     android.util.Log.d("BotonesFormulario", "esEdicion=$esEdicion, camposLlenos=$camposLlenos, procesando=$procesandoRegistro")
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -250,7 +249,6 @@ fun BotonesFormularioPersona(
                     }
                 }
 
-                // El botón "Ver Personas" se eliminó porque está en el navbar
             }
         }
     }

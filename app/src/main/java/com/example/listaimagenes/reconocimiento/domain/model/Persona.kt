@@ -10,10 +10,9 @@ data class Persona(
     val nombre: String,
     val apellido: String,
     val correo: String,
-    val imagenFacial: ByteArray? = null, // Imagen como ByteArray según requisitos
-    val embeddingFacial: String? = null // Embedding facial real para comparación
+    val imagenFacial: ByteArray? = null,
+    val embeddingFacial: String? = null
 ) {
-    // Override equals y hashCode para manejar ByteArray correctamente
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

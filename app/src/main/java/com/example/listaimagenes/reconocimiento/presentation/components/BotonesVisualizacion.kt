@@ -33,10 +33,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BotonesVisualizacion(
-    alVolverFormulario: () -> Unit, // Parámetro mantenido para compatibilidad pero no usado
+    alVolverFormulario: () -> Unit,
     alLimpiarTodo: () -> Unit
 ) {
-    // Solo mostrar botón "Limpiar Todo" - el navbar maneja la navegación
     Box(
         modifier = Modifier
             .fillMaxWidth()

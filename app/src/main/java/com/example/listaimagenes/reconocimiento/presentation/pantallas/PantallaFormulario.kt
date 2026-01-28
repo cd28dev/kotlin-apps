@@ -65,17 +65,13 @@ fun PantallaFormularioPersona(
     val estado by viewModel.estado.collectAsState()
     val activity = LocalContext.current as Activity
     val context = LocalContext.current
-    
-    // 🐛 DEBUG: Verificar estado de campos para diagnóstico
     val imagenFacial = estado.imagenFacial
     val camposLlenos = estado.nombre.isNotBlank() && 
                        estado.apellido.isNotBlank() && 
                        estado.dni.isNotBlank() && 
                        estado.correo.isNotBlank() && 
                        imagenFacial != null && imagenFacial.isNotEmpty()
-    
-    // 🔍 DEBUG: Log para depuración (eliminar en producción)
-    android.util.Log.d("PantallaFormulario", 
+    android.util.Log.d("PantallaFormulario",
         "Estado: nombre=${estado.nombre.isNotBlank()}, " +
         "apellido=${estado.apellido.isNotBlank()}, " +
         "dni=${estado.dni.isNotBlank()}, " +
@@ -96,8 +92,6 @@ fun PantallaFormularioPersona(
             .background(MaterialTheme.colorScheme.background)
     ) {
         BarraSuperior("Registro de Persona", activity)
-
-        // Scrollable content
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -344,18 +338,16 @@ fun PantallaFormularioPersona(
                 onRegistrar = {
                     viewModel.crear(context) { exito ->
                         if (exito) {
-                            // No navegar automáticamente, el usuario puede usar el navbar
                         }
                     }
                 },
                 onActualizar = {
                     viewModel.actualizar(context) { exito ->
                         if (exito) {
-                            // No navegar automáticamente, el usuario puede usar el navbar
                         }
                     }
                 },
-                onVerPersonas = { /* Función vacía - botón eliminado */ },
+                onVerPersonas = { },
                 onCancelar = { viewModel.cancelarEdicion() }
             )
 

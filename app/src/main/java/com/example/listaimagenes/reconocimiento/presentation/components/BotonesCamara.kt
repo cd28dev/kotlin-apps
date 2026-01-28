@@ -49,17 +49,16 @@ fun BotonesCamara(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Botón Cancelar - Rojo
             Box(
                 modifier = Modifier
                     .height(56.dp)
-                    .width(56.dp) // Botón cuadrado solo con ícono
+                    .width(56.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFFFF5757), // Rojo vibrante
-                                Color(0xFFFF7B7B)  // Rojo claro
+                                Color(0xFFFF5757),
+                                Color(0xFFFF7B7B)
                             )
                         )
                     )
@@ -91,7 +90,6 @@ fun BotonesCamara(
                 )
             }
 
-            // Botón Tomar Foto - Verde (más grande, acción principal)
             Box(
                 modifier = Modifier
                     .height(56.dp)
@@ -100,8 +98,8 @@ fun BotonesCamara(
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF56CA00), // Verde vibrante
-                                Color(0xFF6BCF7F)  // Verde claro
+                                Color(0xFF56CA00),
+                                Color(0xFF6BCF7F)
                             )
                         )
                     )
@@ -145,17 +143,16 @@ fun BotonesCamara(
                 )
             }
 
-            // Botón Cambiar Cámara - Azul
             Box(
                 modifier = Modifier
                     .height(56.dp)
-                    .width(56.dp) // Botón cuadrado solo con ícono
+                    .width(56.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF4A90E2), // Azul principal
-                                Color(0xFF5BA3F5)  // Azul claro
+                                Color(0xFF4A90E2),
+                                Color(0xFF5BA3F5)
                             )
                         )
                     )

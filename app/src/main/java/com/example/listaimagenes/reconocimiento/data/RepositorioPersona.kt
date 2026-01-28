@@ -25,7 +25,7 @@ class RepositorioPersona(private val dao:PersonaDao) : IPersonaRepository {
     }
 
     override suspend fun listar(): List<Persona> {
-        return dao.listar() // Ya no necesitamos mapeo, Room maneja la entidad directamente
+        return dao.listar()
     }
 
     override suspend fun obtenerPersonaPorDni(dni: String): Persona? {

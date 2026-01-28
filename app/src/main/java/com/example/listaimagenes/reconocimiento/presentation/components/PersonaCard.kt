@@ -206,7 +206,6 @@ fun PersonaCard(
                 )
             }
 
-            // Efecto de brillo en la esquina superior izquierda
             Box(
                 modifier = Modifier
                     .size(80.dp)

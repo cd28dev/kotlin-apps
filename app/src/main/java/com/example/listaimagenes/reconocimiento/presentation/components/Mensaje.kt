@@ -30,7 +30,7 @@ fun MostrarMensaje(mensaje: MensajeUI, onLimpiar: () -> Unit) {
         is MensajeUI.Exito -> {
             Text(
                 text = mensaje.texto,
-                color = MaterialTheme.colorScheme.tertiary, // éxito → terciario
+                color = MaterialTheme.colorScheme.tertiary,
                 style = MaterialTheme.typography.bodyMedium
             )
             LaunchedEffect(mensaje) {
@@ -41,7 +41,7 @@ fun MostrarMensaje(mensaje: MensajeUI, onLimpiar: () -> Unit) {
         is MensajeUI.Error -> {
             Text(
                 text = mensaje.texto,
-                color = MaterialTheme.colorScheme.error, // error → error
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium
             )
             LaunchedEffect(mensaje) {

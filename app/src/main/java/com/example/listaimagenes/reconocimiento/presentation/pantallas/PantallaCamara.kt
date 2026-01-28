@@ -64,12 +64,9 @@ fun PantallaCamara(
                         override fun onImageSaved(resultado: ImageCapture.OutputFileResults) {
                             val fotoPath = photoFile.absolutePath
                             if (onFotoCapturada != null) {
-                                // Modo reconocimiento: usar callback personalizado
                                 onFotoCapturada(fotoPath)
                             } else {
-                                // Modo registro: usar el PersonaViewModel
                                 android.util.Log.d("PantallaCamara", "📸 Foto capturada: $fotoPath")
-                                // Convertir la imagen a Bitmap y establecer en el ViewModel
                                 val bitmap = android.graphics.BitmapFactory.decodeFile(fotoPath)
                                 vistaModelo.establecerImagenFacial(bitmap)
                                 vistaModelo.mostrarCamara(false)
@@ -109,24 +106,18 @@ fun VistaCamara(
             val provCamaraFuturo = ProcessCameraProvider.getInstance(contexto)
             val provCamara = provCamaraFuturo.get()
 
-            // Configurar preview con mejor gestión de recursos  
             val preview = Preview.Builder()
                 .setTargetRotation(android.view.Surface.ROTATION_0)
                 .build()
                 .also { it.setSurfaceProvider(vistaPreview.surfaceProvider) }
 
-            // Configurar captura de imagen optimizada
             val captura = ImageCapture.Builder()
                 .setTargetRotation(android.view.Surface.ROTATION_0)
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                 .build()
             
             capturaImagen.value = captura
-
-            // Asegurar cierre limpio antes de nueva configuración
             provCamara.unbindAll()
-            
-            // Vincular casos de uso a la cámara
             provCamara.bindToLifecycle(
                 propietarioCiclo,
                 camaraSel.value,
@@ -135,7 +126,6 @@ fun VistaCamara(
             )
             
         } catch (e: Exception) {
-            // Log específico para diagnóstico de problemas de cámara
             android.util.Log.e("PantallaCamara", "Error configurando cámara: ${e.message}", e)
         }
     }
