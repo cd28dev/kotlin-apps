@@ -81,14 +81,12 @@ fun AppPrincipal() {
     var pantallaActual by remember { mutableStateOf("menu") }
     val viewModel: PersonaViewModel = viewModel()
     
-    // Manejar el botón de atrás del dispositivo
     androidx.activity.compose.BackHandler(enabled = pantallaActual != "menu") {
         pantallaActual = "menu"
     }
 
     Scaffold(
         bottomBar = {
-            // Solo mostrar barra de navegación en las pantallas de reconocimiento facial
             if (pantallaActual.startsWith("reconocimiento_")) {
                 BottomNavigationBar(
                     pantallaActual = pantallaActual,
@@ -110,7 +108,6 @@ fun AppPrincipal() {
                     onNavigateToAppVoz = { pantallaActual = "appvoz" }
                 )
                 
-                // App 1: Reconocimiento Facial (app actual)
                 "reconocimiento_registro" -> PantallaFormularioPersona(
                     viewModel = viewModel,
                     alIrAVisualizacion = { pantallaActual = "reconocimiento_lista" }
@@ -121,11 +118,8 @@ fun AppPrincipal() {
                 )
                 "reconocimiento_reconocer" -> PantallaReconocimiento()
                 
-                // App 2: El Tiempo
                 "eltiempo" -> com.example.listaimagenes.eltiempo.ElTiempoScreen()
                 
-                
-                // App 3: AppVoz
                 "appvoz" -> com.example.listaimagenes.appvoz.presentation.AppVozScreen(
                     onBack = { pantallaActual = "menu" }
                 )
@@ -134,7 +128,6 @@ fun AppPrincipal() {
     }
 }
 
-// Pantalla temporal para apps no implementadas aún
 @Composable
 fun PlaceholderScreen(
     appName: String,
@@ -177,7 +170,7 @@ fun PlaceholderScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "🚧 En construcción 🚧",
+            text = "En construcción",
             style = MaterialTheme.typography.titleMedium,
             color = ColoresApp.Secundario
         )
@@ -214,7 +207,6 @@ fun MenuPrincipal(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Título de la aplicación
         Text(
             text = "Sistema de Reconocimiento Facial",
             style = MaterialTheme.typography.headlineMedium.copy(
@@ -235,13 +227,10 @@ fun MenuPrincipal(
         )
         
         Spacer(modifier = Modifier.height(40.dp))
-        
-        // Botones del menú
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Botón Registrar Persona
             Button(
                 onClick = alIrFormulario,
                 modifier = Modifier
@@ -264,7 +253,6 @@ fun MenuPrincipal(
                 )
             }
             
-            // Botón Ver Personas
             Button(
                 onClick = alIrVisualizacion,
                 modifier = Modifier
@@ -287,7 +275,6 @@ fun MenuPrincipal(
                 )
             }
             
-            // Botón Reconocimiento Facial
             Button(
                 onClick = alIrReconocimiento,
                 modifier = Modifier
@@ -323,7 +310,6 @@ fun BottomNavigationBar(
         containerColor = ColoresApp.SuperficieClaro,
         contentColor = ColoresApp.Primario
     ) {
-        // Pestaña Menú
         NavigationBarItem(
             icon = {
                 Icon(
@@ -342,7 +328,6 @@ fun BottomNavigationBar(
                 unselectedTextColor = ColoresApp.TextoSecundario
             )
         )
-        // Pestaña Registro
         NavigationBarItem(
             icon = {
                 Icon(
@@ -362,7 +347,6 @@ fun BottomNavigationBar(
             )
         )
         
-        // Pestaña Lista
         NavigationBarItem(
             icon = {
                 Icon(
@@ -382,7 +366,6 @@ fun BottomNavigationBar(
             )
         )
         
-        // Pestaña Reconocimiento
         NavigationBarItem(
             icon = {
                 Icon(

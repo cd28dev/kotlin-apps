@@ -66,7 +66,6 @@ fun TemaApp(
     contenido: @Composable () -> Unit
 ) {
     val esquemaColor = when {
-        // Usa colores dinámicos en Android 12+ si están habilitados
         colorDinamico && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val contexto = LocalContext.current
             if (temaOscuro) dynamicDarkColorScheme(contexto) else dynamicLightColorScheme(contexto)

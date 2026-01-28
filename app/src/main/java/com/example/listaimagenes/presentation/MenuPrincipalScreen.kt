@@ -52,7 +52,6 @@ fun MenuPrincipalScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Encabezado Universidad
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
@@ -77,13 +76,11 @@ fun MenuPrincipalScreen(
             )
         }
 
-        // Contenido principal
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.weight(1f)
         ) {
-            // Título principal
             Text(
                 text = "Multi-App Android",
                 style = MaterialTheme.typography.headlineLarge.copy(
@@ -105,7 +102,6 @@ fun MenuPrincipalScreen(
             
             Spacer(modifier = Modifier.height(48.dp))
             
-            // Cards de las apps
             Column(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -145,7 +141,6 @@ fun MenuPrincipalScreen(
             }
         }
 
-        // Footer con autores
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
