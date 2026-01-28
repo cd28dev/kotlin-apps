@@ -3,21 +3,11 @@ package com.example.listaimagenes.eltiempo.data.local
 import android.content.Context
 import com.example.listaimagenes.eltiempo.domain.model.Location
 
-/**
- * Local data source using SharedPreferences.
- * 
- * Stores user's selected location locally.
- * 
- * @param context Application context injected by Hilt
- */
 class PreferencesDataSource(
     private val context: Context
 ) {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    
-    /**
-     * Save location to SharedPreferences.
-     */
+
     fun saveLocation(location: Location) {
         prefs.edit().apply {
             putString(KEY_LATITUDE, location.latitude.toString())
@@ -26,15 +16,11 @@ class PreferencesDataSource(
             apply()
         }
     }
-    
-    /**
-     * Get saved location or return default (Piura, Peru).
-     */
+
     fun getLocation(): Location {
         val lat = prefs.getString(KEY_LATITUDE, DEFAULT_LAT)?.toDoubleOrNull() ?: -5.1945
         val lon = prefs.getString(KEY_LONGITUDE, DEFAULT_LON)?.toDoubleOrNull() ?: -80.6328
         val name = prefs.getString(KEY_NAME, "") ?: ""
-        
         return Location(lat, lon, name)
     }
     

@@ -26,7 +26,6 @@ object WeatherDependencyProvider {
             val getLocationUseCase = GetLocationUseCase(locationRepository)
             val updateLocationUseCase = UpdateLocationUseCase(locationRepository)
             
-            // Note: We might need to adjust this depending on the ViewModel constructor
             viewModel = WeatherViewModel(
                 getCurrentWeatherUseCase,
                 getForecastUseCase,

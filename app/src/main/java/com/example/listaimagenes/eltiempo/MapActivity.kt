@@ -26,18 +26,14 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map_eltiempo)
-
-        // Obtener ubicación actual si se pasó
         val currentLat = intent.getDoubleExtra("CURRENT_LAT", -5.1945)
         val currentLon = intent.getDoubleExtra("CURRENT_LON", -80.6328)
         selectedLocation = LatLng(currentLat, currentLon)
 
-        // Inicializar mapa
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // Botón confirmar
         findViewById<Button>(R.id.btnConfirmarUbicacion).setOnClickListener {
             selectedLocation?.let { location ->
                 val resultIntent = Intent().apply {
@@ -55,7 +51,6 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Verificar permisos de ubicación
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
             mMap.isMyLocationEnabled = true
@@ -67,13 +62,10 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
             )
         }
 
-        // Configurar ubicación inicial
         selectedLocation?.let { location ->
             mMap.addMarker(MarkerOptions().position(location).title("Ubicación seleccionada"))
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 12f))
         }
-
-        // Permitir seleccionar nueva ubicación al hacer clic
         mMap.setOnMapClickListener { latLng ->
             mMap.clear()
             mMap.addMarker(MarkerOptions().position(latLng).title("Ubicación seleccionada"))

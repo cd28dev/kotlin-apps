@@ -9,7 +9,6 @@ import com.example.listaimagenes.eltiempo.domain.repository.WeatherRepository
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.HttpURLConnection
 import java.net.URL
 
 class WeatherRepositoryImpl : WeatherRepository {
