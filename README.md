@@ -1,43 +1,39 @@
-# Documentación del Proyecto
+# Project Documentation
 
-## Características
-- Aplicación de múltiples módulos para una mejor organización y mantenimiento.
-- Interfaz de usuario intuitiva y responsiva.
-- Integración con API para datos en tiempo real.
-- Soporte para notificaciones push.
-- Capacidades de almacenamiento local.
+## Characteristics
+- Feature 1: Description of feature 1
+- Feature 2: Description of feature 2
 
-## Tecnologias
+## Technologies
 - Kotlin
-- Android SDK
-- Jetpack (incluyendo ViewModel, LiveData, Room)
-- Retrofit para llamadas a API
-- Dagger para inyección de dependencias
-- Coroutines para manejo de hilos
+- Spring Boot
 
-## Prerrequisitos
-- Android Studio 4.0 o superior
-- JDK 8 o superior
-- Dispositivo Android o emulador con API 21 o superior
+## Prerequisites
+- Java JDK 11 or higher
+- Gradle 6.0 or higher
 
-## Dependencias
-Las principales dependencias del proyecto están definidas en el archivo `build.gradle.kts`:
-- `implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.0"`
-- `implementation "androidx.appcompat:appcompat:1.3.0"`
-- `implementation "com.squareup.retrofit2:retrofit:2.9.0"`
-- `implementation "com.google.dagger:dagger:2.34"`
-- `implementation "androidx.room:room-runtime:2.2.6"`
+## Dependencies
+| Dependency       | Version |
+|------------------|---------|
+| Kotlin           | 1.5.31  |
+| Spring Boot      | 2.5.4   |
+| H2 Database      | 1.4.200 |
 
-## Estructura del Proyecto
-El proyecto está organizado de la siguiente manera:
-- `app/` - Módulo principal de la aplicación.
-- `module1/` - Módulo para características específicas del proyecto.
-- `module2/` - Otro módulo adicional.
-- `libs/` - Dependencias de terceros no disponibles en el repositorio de Maven.
-- `build.gradle.kts` - Archivo de configuración del proyecto.
+## Project Structure
+```
+├── src
+│   ├── main
+│   │   ├── kotlin
+│   │   └── resources
+│   └── test
+│       └── kotlin
+├── build.gradle
+└── settings.gradle
+```
 
-## Contacto
-Para preguntas o comentarios, contactar a:
-- **Nombre:** Nombre del desarrollador
-- **Email:** ejemplo@correo.com
-- **GitHub:** [cd28dev](https://github.com/cd28dev)
+## Contact Information
+- **Developer Name:** John Doe
+- **Email:** johndoe@example.com
+
+---
+\[Generated on: 2026-01-31 04:05:08 UTC\]
